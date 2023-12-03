@@ -1,0 +1,2282 @@
+'                 R E A L   H A R D
+'         ﬁ                ‹‹    ﬁﬂ  ﬂ›        ›  ‹
+'ﬂ€€€‹    €‹    ›        ‹ﬂﬂﬂﬂ‹  ››  ﬁﬁ    ‹‹  ﬁ €
+'  €› €   ›ﬂ€   ›        €‹ ﬂ‹ﬂ ﬁ›ﬂ‹‹ﬂﬁ›  €  ﬂ ﬁ €
+'  €  €   ›‹€ ‹‹€ﬂﬂ       ﬂ€‹‹   € ﬁ› €   €  ‹ ﬁ€‹   !
+'  €› €   €ﬂﬁ   ﬁ ﬁ ›     ‹  €€  €    €    ﬂﬂ  ﬁ  €
+'‹€€€€ﬂ E € ﬁ‹  ﬁ ﬁﬂ›    €  ‹€ﬂ  ﬁ    › A      ﬁ  €‹
+'                         ﬂﬂﬂ     ›  ﬁ         ›
+'move list                                                bye me
+'1 - fire ball               down down
+'2 - piledriver              down right
+'3 - powerbomb               down left
+'4 - coarkscrew splash       right left low punch
+'5 - ddt                     down up low punch
+'6 - invisible               up up up
+'7 - suplex                  down up down
+'8 - body slam               down up high punch
+'9 - fire breath             down up low KICK
+'
+DECLARE SUB updateguy ()
+DECLARE SUB sbinit ()
+DECLARE SUB WriTeReg (Reg%, Value%)
+DECLARE SUB SBPLAY1 (Freq%, Wave%, Feedback%, Modl%, Clen%)
+DECLARE SUB fx (fx%)
+DECLARE SUB intro ()
+DECLARE SUB zdrawfight ()
+DECLARE SUB wipe (numwipe)
+DECLARE SUB drawfight ()
+DECLARE SUB runmove ()
+DECLARE SUB checkformove ()
+DECLARE SUB charselect ()
+DECLARE SUB background (bgroundnum)
+DECLARE SUB drawcrap ()
+DECLARE SUB junk ()
+DECLARE SUB getguy (plrnum, guynum)
+DECLARE SUB ggosub (stance$, plrnum)
+COMMON SHARED a$, numpoints, plrnum, oplrnum, playinthegame
+COMMON SHARED x(), y(), speed(), size, bodyc, jumpheight(), dir$()
+COMMON SHARED rght$(), lft$(), up$(), dwn$(), lpunch$(), lkick$(), easystun
+COMMON SHARED hpunch$(), hkick$(), lft$, rght$, up$, dwn$, qqq, qqqqqq, TheDirectory$
+CLEAR : rght$ = CHR$(0) + CHR$(77): lft$ = CHR$(0) + CHR$(75): up$ = CHR$(0) + CHR$(72): dwn$ = CHR$(0) + CHR$(80): RANDOMIZE TIMER: DIM SHARED cheeeet(6)
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'#THIS IS WHERE YOU EDIT THE CUSTOM CHARACTER'S FILE NAME
+
+TheDirectory$ = ""
+custom$(1) = "CustomCharName"
+custom$(2) = "CustomCharName"
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SCREEN 7
+FOR c = 1 TO 15: IF c = 1 THEN i = 1: r = 0: g = 0: b = 42 ELSE IF c = 2 THEN i = 2: r = 0: g = 42: b = 0 ELSE IF c = 3 THEN i = 3: r = 0: g = 42: b = 42 ELSE IF c = 4 THEN i = 4: r = 42: g = 0: b = 0 ELSE IF c = 5 THEN i = 5: r = 42: g = 0: b = 42
+IF c = 6 THEN i = 6: r = 42: g = 21: b = 0 ELSE IF c = 7 THEN i = 7: r = 42: g = 42: b = 42 ELSE IF c = 8 THEN i = 8: r = 21: g = 21: b = 21 ELSE IF c = 9 THEN i = 9: r = 0: g = 0: b = 63 ELSE IF c = 10 THEN i = 10: r = 0: g = 63: b = 0
+IF c = 11 THEN i = 11: r = 0: g = 42: b = 63 ELSE IF c = 12 THEN i = 12: r = 63: g = 0: b = 0 ELSE IF c = 13 THEN i = 13: r = 42: g = 0: b = 42 ELSE IF c = 14 THEN i = 14: r = 63: g = 63: b = 0 ELSE IF c = 15 THEN i = 15: r = 63: g = 63: b = 63
+OUT &H3C8, i + (FIX(i / 8) * 8): OUT &H3C9, r: OUT &H3C9, g: OUT &H3C9, b: : NEXT c
+
+
+
+'       -When creating sounds-
+' Frequancy, Wave, Feedback, Modual, Clean
+'1  E           11 X             21 smack light       31 high echo
+'2  X           12 X             22 smack medium      32 swi
+'3  X           13 X             23 smack hard        33 click
+'4  X           14 X             24 smack real hard   34 swi
+'5  X           15 X             25 smack down        35 X
+'6  X           16 X             26 explosion         36 scratch echo
+'7  X           17 X             27 high hat          37 x
+'8  X           18 chopper       28 chopper long      38 static
+'9  X           19 gong          29 crash             39 loud
+'10 X           20 sissy smack   30 crash heavy       40 snare
+
+'41 tom            51 fuzz twang
+'42 high hat       52 fuzz puff
+'43 ice            53 puff
+'44 bottle high
+'45 hit
+'46 bottle short
+'47 low note
+'48 char select 1
+'49 char select 2
+'50 low twang
+        'COOL
+'28
+'
+'
+'move list
+'1 - fire ball               down down
+'2 - piledriver              down right
+'3 - powerbomb               down left
+'4 - coarkscrew splash       right left low punch
+'5 - ddt                     down up low punch
+'6 - invisible               up up up
+'7 - suplex                  down up down
+'8 - body slam               down up high punch
+'9 - fire breath             down up low KICK
+
+sbinit: numpoints = 10
+DIM SHARED x(2), y(2), name$(2), deathfall(2), POS$(2), pictype(2)
+DIM SHARED up$(2), dwn$(2), lft$(2), rght$(2), maxlife(2), qq(5)
+DIM SHARED addpunch(1), addkick(2), addjump(2), addpow(2), addspeed(2)
+DIM SHARED dress(2), batwings(2), cape(2), robes(2), bigarm(2), biglegs(2)
+DIM SHARED pkey$(2, 5), looppkey(2), powmoveframe(2), stun(2), matches(2)
+DIM SHARED movex(2), jumpdir(2), jumping(2), victories(2), kicking(2)
+DIM SHARED doingmove(2), gettingmoved(2), moving(2), life(2), cuswins(2)
+DIM SHARED movey(2), moveframe(2), jumpheight(2), dir$(2), punching(2)
+DIM SHARED lpunch$(2), hpunch$(2), lkick$(2), hkick$(2), bootc(2)
+DIM SHARED bodyc(2), legc(2), speed(2), size(2), headc(2), loincloth(2)
+DIM SHARED destx(2, numpoints), desty(2, numpoints), recover(2), custom$(2)
+DIM SHARED pixx(2, numpoints), pixy(2, numpoints), spin(2), kolors(4, 4)
+DIM SHARED fistc1(2), punchpow(2), fistc2(2), kickpow(2), headgear$(2)
+        'special move variables
+DIM SHARED movenum(2), movedir(2), powmovex(2)
+DIM SHARED fireballc(2), fireballsz(2), fireballsp(2), fireballr(2), fireballfx%(2)
+DIM SHARED piledriverd(2), powerbomb(2), summersault(2), ddtd(2)
+DIM SHARED invisible(2), suplex(2), bodyslam(2), fired(2), firel(2)
+cheeeet(3) = 2
+
+y(1) = 80
+x(1) = 90
+POS$(1) = "STANDING"
+dir$(1) = "RIGHT"
+cuswins(1) = 0
+cuswins(2) = 0
+
+rght$(1) = "B": lft$(1) = "C": up$(1) = "F": dwn$(1) = "V"
+lpunch$(1) = "Q": lkick$(1) = "A": hpunch$(1) = "W": hkick$(1) = "S"
+y(2) = 80: x(2) = 230: POS$(2) = "STANDING": dir$(2) = "LEFT": 
+rght$(2) = CHR$(0) + CHR$(77): lft$(2) = CHR$(0) + CHR$(75): up$(2) = CHR$(0) + CHR$(72): dwn$(2) = CHR$(0) + CHR$(80)
+lpunch$(2) = ";": lkick$(2) = ".": hpunch$(2) = "'": hkick$(2) = "/"
+kolors(1, 1) = 4: kolors(1, 2) = 12: kolors(1, 3) = 14: kolors(1, 4) = 15: kolors(2, 1) = 2: kolors(2, 2) = 10: kolors(2, 3) = 14: kolors(2, 4) = 15
+kolors(3, 1) = 8: kolors(3, 2) = 3: kolors(3, 3) = 11: kolors(3, 4) = 15: kolors(4, 1) = 7: kolors(4, 2) = 14: kolors(4, 3) = 11: kolors(4, 4) = 15
+'ON ERROR GOTO resetgame:
+'move list
+'1 - fire ball               down down
+'2 - piledriver              down right
+'3 - powerbomb               down left
+'4 - coarkscrew splash       right left low punch
+'5 - ddt                     down up low punch
+'6 - invisible               up up up
+'7 - suplex                  down up down
+'8 - body slam               down up high punch
+'9 - fire breath             down up low kick
+gobackintro: : CALL intro
+startover: : CALL charselect
+IF qqqqqq = 5 THEN GOTO gobackintro:
+                                'START FIGHTING
+ggosub "relax", 1: ggosub "relax", 2
+easystun = 4: stun(1) = life(1) / easystun: stun(2) = life(2) / easystun: bgroundnum = INT(RND * 5) + 1:
+background bgroundnum
+ggo = 0: DO: PCOPY 2, 1
+  IF life(1) > 0 THEN LINE (10, 10)-STEP(life(1), 6), 2, BF: LINE (11, 11)-STEP(life(1) - 2, 4), 10, BF
+  IF life(2) > 0 THEN LINE (310, 10)-STEP(-life(2), 6), 2, BF: LINE (309, 11)-STEP(-life(2) + 2, 4), 10, BF
+  IF ggo >= 8 THEN zdrawfight: IF ggo = 8 THEN fx 17
+  FOR plrnum = 1 TO 2: ggosub "relax", plrnum: CALL drawcrap: CALL junk
+  FOR b% = 1 TO 10: pixx(plrnum, b%) = (pixx(plrnum, b%) + ((destx(plrnum, b%) - pixx(plrnum, b%)) / (speed(plrnum) / 3))): pixy(plrnum, b%) = (pixy(plrnum, b%) + ((desty(plrnum, b%) - pixy(plrnum, b%)) / (speed(plrnum) / 3)))
+    IF POS$(plrnum) = "DOWN" THEN pixx(plrnum, b%) = (pixx(plrnum, b%) + ((destx(plrnum, b%) - pixx(plrnum, b%)) / (speed(plrnum) / 3))): pixy(plrnum, b%) = (pixy(plrnum, b%) + ((desty(plrnum, b%) - pixy(plrnum, b%)) / (speed(plrnum) / 3)))
+  NEXT b%: NEXT plrnum
+ggo = ggo + 1: PCOPY 1, 0: LOOP UNTIL ggo >= 11
+DO: LOOP UNTIL INKEY$ = "":                                                             IF cheeeet(4) = 5 THEN SCREEN 7, , 0, 0
+IF cuswins(1) > 0 THEN matches(1) = matches(1) + 1
+IF cuswins(2) > 0 THEN matches(2) = matches(2) + 1
+'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+DO: PCOPY ABS(cheeeet(4) - 5) * .4, ABS(cheeeet(4) - 5) * .2'MAIN LOOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  checkcraploop = checkcraploop + 1
+  IF checkcraploop = 10 THEN '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    checkcraploop = 0: FOR plrnum = 1 TO 2
+    IF speed(plrnum) > 50 AND movenum(plrnum) = 0 THEN speed(plrnum) = speed(plrnum) - 70
+    IF stun(plrnum) >= maxlife(plrnum) / easystun AND life(plrnum) < maxlife(plrnum) THEN life(plrnum) = life(plrnum) + (recover(plrnum) * 3)
+    IF x(plrnum) > 300 THEN x(plrnum) = ABS(cheeeet(6) - 5) * 60: dir$(playernum) = "RIGHT"
+    IF x(plrnum) < 0 THEN x(plrnum) = cheeeet(6) * 60: dir$(playernum) = "LEFT"
+    IF bgroundnum = 4 AND life(oplrnum) > 0 AND name$(plrnum) <> "THE DEVIL" THEN life(plrnum) = life(plrnum) - 1.5
+    IF bgroundnum = 1 THEN
+      IF x(plrnum) + 20 <= 40 AND deathfall(plrnum) = 0 THEN jumping(plrnum) = 0: deathfall(plrnum) = 5: movey(plrnum) = 2: dir$(plrnum) = "RIGHT": x(plrnum) = x(plrnum) - 30: y(plrnum) = y(plrnum) + 30: life(plrnum) = -100
+      IF x(plrnum) + 20 >= 320 AND deathfall(plrnum) = 0 THEN : jumping(plrnum) = 0: deathfall(plrnum) = 5: movey(plrnum) = 2: dir$(plrnum) = "LEFT": x(plrnum) = x(plrnum) + 30: y(plrnum) = y(plrnum) + 30: life(plrnum) = -100
+    END IF
+    NEXT plrnum
+  END IF''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  IF life(1) > 0 THEN LINE (10, 10)-STEP(life(1), 6), 2, BF: LINE (11, 11)-STEP(life(1) - 2, 4), 10, BF
+  IF life(2) > 0 THEN LINE (310, 10)-STEP(-life(2), 6), 2, BF: LINE (309, 11)-STEP(-life(2) + 2, 4), 10, BF
+  IF stun(1) > 0 THEN LINE (10, 19)-STEP(stun(1), 3), 1, BF: LINE (11, 20)-STEP(stun(1) - 2, 1), 9, BF
+  IF stun(2) > 0 THEN LINE (310, 19)-STEP(-stun(2), 3), 1, BF: LINE (309, 20)-STEP(-stun(2) + 2, 1), 9, BF
+  LOCATE 1, 2: COLOR ABS(headc(1)): PRINT name$(1): LOCATE 1, 40 - LEN(name$(2)): COLOR ABS(headc(2)): PRINT name$(2)
+  FOR plrnum = 1 TO 2 '------------------------------------------------------------------------------------------------------------------------------------
+  IF plrnum = 1 THEN oplrnum = 2:  ELSE oplrnum = 1
+  IF life(plrnum) <= 0 AND movey(plrnum) = 0 AND POS$(plrnum) <> "DOWN" THEN movey(plrnum) = -6: moving(plrnum) = 5: jumpdir(plrnum) = 0: fx 25
+  IF cheeeet(5) = 5 THEN drawcrap
+  looppkey(plrnum) = looppkey(plrnum) + 1: IF dir$(plrnum) = "RIGHT" THEN spin(plrnum) = 1:  ELSE : spin(plrnum) = -1
+  IF stun(plrnum) < maxlife(plrnum) / easystun AND gettingmoved(plrnum) = 0 THEN stun(plrnum) = stun(plrnum) + recover(plrnum): IF POS$(plrnum) = "DOWN" THEN stun(plrnum) = stun(plrnum) - (recover(plrnum) / 2)
+  IF stun(plrnum) <= 0 AND stun(plrnum) > -500 AND POS$(plrnum) <> "RELAX" AND POS$(plrnum) <> "DOWN" AND movey(plrnum) = 0 THEN stun(plrnum) = -607: POS$(plrnum) = "RELAXED": ggosub "RELAX", plrnum: doingmove(plrnum) = 5
+  IF stun(plrnum) >= -600 AND stun(plrnum) < -500 THEN stun(plrnum) = maxlife(plrnum) / easystun: doingmove(plrnum) = 0
+  IF stun(plrnum) < -600 THEN FOR q = 1 TO 2: CIRCLE (pixx(plrnum, 1), pixy(plrnum, 1) - (q - 1) * 5), INT(RND * 15) + 20, INT(RND * 2) + 14, RND * 6.28, RND * 6.28, .225: NEXT q
+  checkformove
+  IF doingmove(plrnum) > 0 OR movenum(plrnum) > 0 THEN runmove
+  IF moving(plrnum) = 5 AND doingmove(plrnum) = 0 THEN moveframe(plrnum) = moveframe(plrnum) + 1
+  IF moveframe(plrnum) >= speed(plrnum) + 1 AND moving(plrnum) = 5 AND life(plrnum) > 0 THEN moving(plrnum) = 0: ggosub "stand", plrnum: moveframe(plrnum) = 0: punching(plrnum) = 0: kicking(plrnum) = 0: POS$(plrnum) = "STANDING"
+            'check for push key
+  IF a$ <> "" AND doingmove(plrnum) = 0 AND gettingmoved(plrnum) = 0 AND POS$ <> "HURTING" THEN
+    IF a$ = hpunch$(plrnum) AND moving(plrnum) <> 5 THEN ggosub "hpunch", plrnum: moving(plrnum) = 5: moveframe(plrnum) = 0: punching(plrnum) = 5: POS$(plrnum) = "HPUNCHING"
+    IF a$ = lpunch$(plrnum) AND moving(plrnum) <> 5 THEN ggosub "lpunch", plrnum: moving(plrnum) = 5: moveframe(plrnum) = 0: punching(plrnum) = 5: POS$(plrnum) = "LPUNCHING"
+    IF a$ = hkick$(plrnum) AND moving(plrnum) <> 5 THEN ggosub "hkick", plrnum: moving(plrnum) = 5: moveframe(plrnum) = 0: kicking(plrnum) = 5: POS$(plrnum) = "HKICKING"
+    IF a$ = lkick$(plrnum) AND moving(plrnum) <> 5 THEN ggosub "lkick", plrnum: moving(plrnum) = 5: moveframe(plrnum) = 0: kicking(plrnum) = 5: POS$(plrnum) = "LKICKING"
+    IF a$ = rght$(plrnum) AND moving(plrnum) <> 5 AND jumping(plrnum) <> 5 THEN dir$(plrnum) = "RIGHT": moving(plrnum) = 5: x(plrnum) = x(plrnum) + 15:  ggosub "walk", plrnum: moveframe(plrnum) = 0: POS$(plrnum) = "WALKING": moveframe(plrnum) = 3
+    IF a$ = lft$(plrnum) AND moving(plrnum) <> 5 AND jumping(plrnum) <> 5 THEN dir$(plrnum) = "LEFT": moving(plrnum) = 5: x(plrnum) = x(plrnum) - 15: ggosub "walk", plrnum: moveframe(plrnum) = 0: POS$(plrnum) = "WALKING": moveframe(plrnum) = 3
+    IF a$ = dwn$(plrnum) AND moving(plrnum) <> 5 AND jumping(plrnum) <> 5 AND POS$(plrnum) <> "LATAKING1" THEN ggosub "duck", plrnum: moving(plrnum) = 5: moveframe(plrnum) = 0: POS$(plrnum) = "DUCKING"
+    IF a$ = rght$(plrnum) AND jumping(plrnum) = 5 AND jumpdir(plrnum) = 0 THEN jumpdir(plrnum) = 5: dir$(plrnum) = "RIGHT"
+    IF a$ = lft$(plrnum) AND jumping(plrnum) = 5 AND jumpdir(plrnum) = 0 THEN jumpdir(plrnum) = -5: dir$(plrnum) = "LEFT"
+    IF (a$ = lkick$(plrnum) OR a$ = hkick$(plrnum)) AND POS$(plrnum) = "DUCKING" THEN ggosub "LATAK1", plrnum: moving(plrnum) = 5: moveframe(plrnum) = 2: POS$(plrnum) = "LATAKING1": kicking(plrnum) = 5: fx 53
+    IF (a$ = lpunch$(plrnum) OR a$ = hpunch$(plrnum)) AND POS$(plrnum) = "DUCKING" THEN ggosub "LATAK2", plrnum: moving(plrnum) = 5: moveframe(plrnum) = 2: POS$(plrnum) = "LATAKING2": punching(plrnum) = 5: fx 53
+    IF a$ = up$(plrnum) AND moving(plrnum) <> 5 AND jumping(plrnum) <> 5 AND theending = 0 THEN
+    fx 35: jumping(plrnum) = 5: ggosub "jump", plrnum: movey(plrnum) = -jumpheight(plrnum): falling(plrnum) = 0: moveframe(plrnum) = -100: moving(plrnum) = 5: jumpdir(plrnum) = 0: POS$(plrnum) = "JUMPING"
+    END IF
+  END IF
+          'CHECK FOR PUCN OR KICK HIT
+  IF ABS(x(plrnum) - x(oplrnum)) < 70 THEN
+  IF punching(plrnum) = 5 THEN
+  IF punching(plrnum) = 5 AND POS$(plrnum) = "HPUNCHING" AND POS$(oplrnum) <> "HURTING" AND pixy(plrnum, 8) >= pixy(oplrnum, 1) - 23 THEN
+    IF ((pixx(plrnum, 8) >= pixx(oplrnum, 1) - 5 AND pixx(plrnum, 1) <= pixx(oplrnum, 1)) OR (pixx(plrnum, 8) <= pixx(oplrnum, 1) + 5 AND pixx(plrnum, 1) >= pixx(oplrnum, 1))) THEN
+      fx 21: life(oplrnum) = life(oplrnum) - CINT(punchpow(plrnum) * 1.5): stun(oplrnum) = stun(oplrnum) - punchpow(plrnum)
+      IF dir$(plrnum) = "RIGHT" THEN dir$(oplrnum) = "LEFT": x(oplrnum) = x(oplrnum) + 10:  ELSE dir$(oplrnum) = "RIGHT": x(oplrnum) = x(oplrnum) - 10
+      IF jumping(oplrnum) = 5 THEN jumpdir(oplrnum) = -jumpdir(oplrnum): jumping(oplrnum) = 0: movey(oplrnum) = -5:
+      ggosub "hurt1", oplrnum: moving(oplrnum) = 5: moveframe(oplrnum) = 2: POS$(oplrnum) = "HURTING": doingmove(oplrnum) = 0: movenum(oplrnum) = 0
+      IF stun(oplrnum) < -600 THEN movey(oplrnum) = -3: doingmove(oplrnum) = 0: stun(oplrnum) = -600.1
+    END IF
+  ELSEIF jumping(oplrnum) = 0 AND POS$(oplrnum) <> "HURTING" AND punching(plrnum) = 5 AND POS$(plrnum) = "LPUNCHING" AND pixy(plrnum, 8) >= pixy(oplrnum, 1) AND POS$(oplrnum) <> "HURTING" THEN
+    IF ((pixx(plrnum, 10) > pixx(oplrnum, 1) - 5 AND pixx(plrnum, 1) < pixx(oplrnum, 1)) OR (pixx(plrnum, 10) <= pixx(oplrnum, 1) + 5 AND pixx(plrnum, 1) > pixx(oplrnum, 1))) THEN
+    fx 21: life(oplrnum) = life(oplrnum) - punchpow(plrnum): stun(oplrnum) = stun(oplrnum) - CINT(punchpow(plrnum) * 1.25)
+    IF dir$(plrnum) = "RIGHT" THEN dir$(oplrnum) = "LEFT": x(oplrnum) = x(oplrnum) + 18:  ELSE dir$(oplrnum) = "RIGHT": x(oplrnum) = x(oplrnum) - 18
+    ggosub "hurt2", oplrnum: moving(oplrnum) = 5: moveframe(oplrnum) = 2: POS$(oplrnum) = "HURTING": doingmove(oplrnum) = 0: movenum(oplrnum) = 0
+    IF stun(oplrnum) < -600 THEN movey(oplrnum) = -3: doingmove(oplrnum) = 0: stun(oplrnum) = -600.1
+    END IF
+  END IF
+  ELSEIF kicking(plrnum) = 5 THEN
+  IF kicking(plrnum) = 5 AND (POS$(plrnum) = "HKICKING" OR POS$(plrnum) = "JATAKING") AND POS$(oplrnum) <> "HURT1" AND POS$(oplrnum) <> "HURTING" THEN
+    IF ((pixx(plrnum, 6) >= pixx(oplrnum, 1) - 5 AND pixx(plrnum, 1) <= pixx(oplrnum, 1)) OR (pixx(plrnum, 6) <= pixx(oplrnum, 1) + 5 AND pixx(plrnum, 1) >= pixx(oplrnum, 1))) AND pixy(plrnum, 6) >= pixy(oplrnum, 1) - 23 THEN
+    fx 21: life(oplrnum) = life(oplrnum) - kickpow(plrnum): stun(oplrnum) = stun(oplrnum) - kickpow(plrnum)
+    IF dir$(plrnum) = "RIGHT" THEN dir$(oplrnum) = "LEFT": x(oplrnum) = x(oplrnum) + 10:  ELSE dir$(oplrnum) = "RIGHT": x(oplrnum) = x(oplrnum) - 10
+    IF jumping(oplrnum) = 5 THEN jumpdir(oplrnum) = -jumpdir(oplrnum): jumping(oplrnum) = 0: movey(oplrnum) = -5: life(oplrnum) = life(oplrnum) - kickpow(plrnum)
+    ggosub "hurt1", oplrnum: moving(oplrnum) = 5: moveframe(oplrnum) = 2: POS$(oplrnum) = "HURTING": doingmove(oplrnum) = 0: movenum(oplrnum) = 0
+    IF stun(oplrnum) < -600 THEN movey(oplrnum) = -3: doingmove(oplrnum) = 0: stun(oplrnum) = -600.1
+    END IF
+  ELSEIF jumping(oplrnum) = 0 AND POS$(oplrnum) <> "HURTING" AND kicking(plrnum) = 5 AND POS$(plrnum) = "LKICKING" AND POS$(oplrnum) <> "HURTING" THEN
+    IF ((pixx(plrnum, 4) >= pixx(oplrnum, 1) - 5 AND pixx(plrnum, 1) <= pixx(oplrnum, 1)) OR (pixx(plrnum, 4) <= pixx(oplrnum, 1) + 5 AND pixx(plrnum, 1) >= pixx(oplrnum, 1))) AND pixy(plrnum, 4) >= pixy(oplrnum, 1) THEN
+    fx 20: life(oplrnum) = life(oplrnum) - kickpow(plrnum): stun(oplrnum) = stun(oplrnum) - kickpow(plrnum)
+    IF dir$(plrnum) = "RIGHT" THEN dir$(oplrnum) = "LEFT": x(oplrnum) = x(oplrnum) + 18:  ELSE dir$(oplrnum) = "RIGHT": x(oplrnum) = x(oplrnum) - 18
+    ggosub "hurt2", oplrnum: moving(oplrnum) = 5: moveframe(oplrnum) = 2: POS$(oplrnum) = "HURTING": doingmove(oplrnum) = 0: movenum(oplrnum) = 0
+    IF stun(oplrnum) < -600 THEN movey(oplrnum) = -3: doingmove(oplrnum) = 0: stun(oplrnum) = -600.1
+    END IF
+  ELSEIF y(oplrnum) = 80 AND INSTR(1, POS$(plrnum), "LATAKING") AND POS$(oplrnum) <> "HURTING" THEN
+    IF POS$(plrnum) = "LATAKING1" AND kicking(plrnum) = 5 AND POS$(oplrnum) <> "DOWN" AND POS$(oplrnum) <> "DUCKING" THEN
+      IF (pixx(plrnum, 6) > pixx(oplrnum, 4) AND x(plrnum) < x(oplrnum)) OR (pixx(plrnum, 6) < pixx(oplrnum, 4) AND x(plrnum) > x(oplrnum)) THEN
+      doingmove(oplrnum) = 0: movenum(oplrnum) = 0
+      movey(oplrnum) = 5: y(oplrnum) = 60: jumpdir(oplrnum) = -spin(oplrnum) * 7: x(oplrnum) = x(oplrnum) + spin(oplrnum) * 15: life(oplrnum) = life(oplrnum) - (kickpow(plrnum) / 2.5): stun(oplrnum) = stun(oplrnum) - kickpow(plrnum): fx 20
+      IF stun(oplrnum) < -600 THEN movey(oplrnum) = -3: doingmove(oplrnum) = 0: stun(oplrnum) = -600.1
+      END IF
+    ELSEIF POS$(plrnum) = "LATAKING2" AND punching(plrnum) = 5 THEN
+      IF (pixx(plrnum, 9) > pixx(oplrnum, 3) AND pixx(plrnum, 1) < pixx(oplrnum, 2) AND x(plrnum) < x(oplrnum)) OR (pixx(plrnum, 9) < pixx(oplrnum, 3) AND pixx(plrnum, 1) > pixx(oplrnum, 2) AND x(plrnum) > x(oplrnum)) THEN
+      x(oplrnum) = x(oplrnum) - spin(oplrnum) * 15: ggosub "HURT2", oplrnum: moving(oplrnum) = 5: moveframe(oplrnum) = 0: POS$(oplrnum) = "HURTING"
+      life(oplrnum) = life(oplrnum) - (punchpow(plrnum) / 2): stun(oplrnum) = stun(oplrnum) - (punchpow(plrnum) / 2): fx 21: doingmove(oplrnum) = 0: movenum(oplrnum) = 0
+      IF stun(oplrnum) < -600 THEN movey(oplrnum) = -3: doingmove(oplrnum) = 0: stun(oplrnum) = -600.1
+      END IF
+    END IF
+  END IF
+  END IF
+  END IF
+          'HANLE JUMPING FALLING DEATHFALLING AND SMOOTH HORIZONTAL
+  x(plrnum) = CINT(x(plrnum) + movex(plrnum)): movex(plrnum) = movex(plrnum) / 1.5
+  IF movey(plrnum) <> 0 OR jumping(plrnum) = 5 THEN
+    y(plrnum) = y(plrnum) + movey(plrnum)
+    x(plrnum) = x(plrnum) + jumpdir(plrnum)
+    IF movey(plrnum) < 0 THEN movey(plrnum) = movey(plrnum) * .55: IF doingmove(plrnum) = 0 AND gettingmoved(plrnum) = 0 THEN ggosub "JUMP", plrnum
+    IF ABS(movey(plrnum)) <= 1 THEN movey(plrnum) = 1.1: POS$(plrnum) = "JATACKING": kicking(plrnum) = 5
+    IF movey(plrnum) >= 0 THEN
+      IF y(plrnum) < 300 THEN movey(plrnum) = movey(plrnum) * 1.45
+    IF jumping(plrnum) = 0 AND doingmove(plrnum) = 0 AND gettingmoved(plrnum) = 0 THEN
+      POS$(plrnum) = "LIMP AIR": ggosub "LIMP AIR", plrnum
+     IF y(plrnum) >= 80 AND deathfall(plrnum) <> 5 THEN y(plrnum) = 80: jumping(plrnum) = 0: moveframe(plrnum) = 0: ggosub "DOWN", plrnum: POS$(plrnum) = "DOWN": movey(plrnum) = 0: jumpdir(pleyernum) = 0: moving(plrnum) = 5: moveframe(plrnum) = -20 _
+: fx 22
+    ELSEIF jumping(plrnum) = 5 AND doingmove(plrnum) = 0 AND gettingmoved(plrnum) = 0 THEN
+      POS$(plrnum) = "JATAKING": kicking(plrnum) = 5: ggosub "JATAK", plrnum
+      IF y(plrnum) >= 80 AND deathfall(plrnum) <> 5 THEN y(plrnum) = 80: jumping(plrnum) = 0: moveframe(plrnum) = 0: ggosub "duck", plrnum: kicking(plrnum) = 0: POS$(plrnum) = "DUCKING": movey(plrnum) = 0: jumpdir(pleyernum) = 0: fx 20
+    END IF
+    END IF
+  END IF: IF POS$(plrnum) = "DOWN" AND moveframe(plrnum) = 0 AND life(plrnum) > 0 THEN POS$(plrnum) = "DUCKING": ggosub "DUCK", plrnum
+ 
+  FOR b% = 1 TO 10
+    pixx(plrnum, b%) = (pixx(plrnum, b%) + ((destx(plrnum, b%) - pixx(plrnum, b%)) / (speed(plrnum) / 3)))
+    pixy(plrnum, b%) = (pixy(plrnum, b%) + ((desty(plrnum, b%) - pixy(plrnum, b%)) / (speed(plrnum) / 3)))
+  NEXT b%
+  junk
+  drawcrap
+  NEXT plrnum
+IF life(1) <= 0 OR life(2) <= 0 THEN theending = theending + 1
+'######################################################################################################
+PCOPY ABS(cheeeet(4) - 5) * .2, 0: a$ = UCASE$(INKEY$): LOOP UNTIL (a$ = CHR$(27) AND jumping(1) = 0 AND jumping(2) = 0) OR (theending >= 35 AND doingmove(1) = 0 AND doingmove(2) = 0)  '##################################
+'######################################################################################################
+        'DONE FIGHTING
+IF life(1) > 0 AND life(2) <= 0 THEN
+  victories(1) = victories(1) + 1: IF cuswins(1) > 0 THEN cuswins(1) = cuswins(1) + 1
+  FOR theending = 1 TO 55: PCOPY 2, 1
+  LOCATE 10, 20 - (LEN(name$(2)) / 2): COLOR ABS(headc(2)): PRINT name$(2): LOCATE 11, 18: COLOR 10: PRINT "LOSES"
+  LINE (10, 10)-STEP(life(1), 6), 2, BF: LINE (11, 11)-STEP(life(1) - 2, 4), 10, BF
+   LOCATE 1, 2: COLOR ABS(headc(1)): PRINT name$(1): LOCATE 1, 40 - LEN(name$(2)): COLOR 8: PRINT name$(2)
+   FOR plrnum = 1 TO 2
+      ggosub "WIN", 1
+      FOR b% = 1 TO 10: pixx(plrnum, b%) = (pixx(plrnum, b%) + ((destx(plrnum, b%) - pixx(plrnum, b%)) / (speed(plrnum) / 3))): pixy(plrnum, b%) = (pixy(plrnum, b%) + ((desty(plrnum, b%) - pixy(plrnum, b%)) / (speed(plrnum) / 3)))
+      NEXT b%: CALL junk: CALL drawcrap
+    NEXT plrnum
+  PCOPY 1, 0: NEXT theending: plrnum = 1: oplrnum = 2
+ELSEIF life(1) <= 0 AND life(2) > 0 THEN
+  victories(2) = victories(2) + 1: IF cuswins(2) > 0 THEN cuswins(2) = cuswins(2) + 1
+  FOR theending = 1 TO 55: PCOPY 2, 1
+  LOCATE 10, 20 - (LEN(name$(1)) / 2): COLOR ABS(headc(1)): PRINT name$(1): LOCATE 11, 18: COLOR 10: PRINT "LOSES"
+  LOCATE 1, 2: COLOR 8: PRINT name$(1): LOCATE 1, 40 - LEN(name$(2)): COLOR ABS(headc(2)): PRINT name$(2)
+  LINE (310, 10)-STEP(-life(2), 6), 2, BF: LINE (309, 11)-STEP(-life(2) + 2, 4), 10, BF
+    FOR plrnum = 1 TO 2
+      ggosub "WIN", 2
+      FOR b% = 1 TO 10: pixx(plrnum, b%) = (pixx(plrnum, b%) + ((destx(plrnum, b%) - pixx(plrnum, b%)) / (speed(plrnum) / 3))): pixy(plrnum, b%) = (pixy(plrnum, b%) + ((desty(plrnum, b%) - pixy(plrnum, b%)) / (speed(plrnum) / 3)))
+      NEXT b%: CALL junk: CALL drawcrap
+    NEXT plrnum
+  PCOPY 1, 0: NEXT theending: plrnum = 2: oplrnum = 1
+ELSEIF life(1) <= 0 AND life(2) <= 0 THEN
+  FOR theending = 1 TO 50: PCOPY 2, 1
+  LOCATE 1, 2: COLOR 8: PRINT name$(1): LOCATE 1, 40 - LEN(name$(2)): COLOR 8: PRINT name$(2)
+  LINE (133, 54)-STEP(60, 10), 0, BF: LINE (133, 54)-STEP(60, 10), 11, B: LINE (132, 53)-STEP(62, 12), 3, B
+  LOCATE 8, 18: COLOR 3: PRINT "D R A W"
+  FOR plrnum = 1 TO 2: CALL junk: CALL drawcrap: NEXT plrnum
+  PCOPY 1, 0: NEXT theending
+ELSEIF life(1) > 0 AND life(2) > 0 THEN
+  FOR theending = 1 TO 30: PCOPY 2, 1
+  LOCATE 1, 2: COLOR ABS(headc(1)): PRINT name$(1): LOCATE 1, 40 - LEN(name$(2)): COLOR ABS(headc(2)): PRINT name$(2)
+  LINE (10, 10)-STEP(life(1), 6), 2, BF: LINE (11, 11)-STEP(life(1) - 2, 4), 10, BF
+  LINE (310, 10)-STEP(-life(2), 6), 2, BF: LINE (309, 11)-STEP(-life(2) + 2, 4), 10, BF
+    LINE (118, 54)-STEP(90, 18), 0, BF: LINE (118, 54)-STEP(90, 18), 11, B: LINE (117, 53)-STEP(92, 20), 10, B: LINE (116, 52)-STEP(94, 22), 2, B
+    LOCATE 8, 16: COLOR 10: PRINT " M A T C H": LOCATE 9, 16: COLOR 3: PRINT "C A L L E D"
+    FOR plrnum = 1 TO 2
+      ggosub "RELAX", plrnum
+      FOR b% = 1 TO 10: pixx(plrnum, b%) = (pixx(plrnum, b%) + ((destx(plrnum, b%) - pixx(plrnum, b%)) / (speed(plrnum) / 3))): pixy(plrnum, b%) = (pixy(plrnum, b%) + ((desty(plrnum, b%) - pixy(plrnum, b%)) / (speed(plrnum) / 3)))
+      NEXT b%: CALL junk: CALL drawcrap
+    NEXT plrnum
+  PCOPY 1, 0: NEXT theending
+END IF
+DO: LOOP UNTIL INKEY$ = ""
+wipe 2
+theending = 0
+deathfall(1) = 0: deathfall(2) = 0
+movey(1) = 0: movey(2) = 0
+doingmove(1) = 0: doingmove(2) = 0
+gettingmoved(1) = 0: gettingmoved(2) = 0
+GOTO startover:
+        'error
+IF 5 = 6 THEN
+resetgame:
+SCREEN 7, , 0, 0: CLS : LOCATE 11, 10: COLOR 4: PRINT "sOmeTh≠nG fUcKEd uP": COLOR 8: SYSTEM
+END IF
+
+SUB background (bgroundnum)
+SCREEN 7, , 2, 0:                                                                       IF cheeeet(5) = 5 THEN bgroundnum = 100
+
+IF bgroundnum = 1 THEN
+  FOR k% = 1 TO 200: c% = INT(RND * 2) + 1: IF c% = 2 THEN c% = 9
+  PSET (INT(RND * 320), INT(RND * 200)), c%: NEXT k%
+  FOR k% = 1 TO 100: starx = INT(RND * 320): c = INT(RND * 2) + 1: IF c = 2 THEN c = 9
+  PSET (starx, INT(RND * 20) + (starx / 4) + 30), c: NEXT k%
+  CIRCLE (160, 180), 150, 8, , , .05: PAINT (160, 180), 7, 8: CIRCLE (160, 183), 150, 8, 3.14, 6.28, .05: LINE (10, 180)-STEP(0, 3), 8: LINE (310, 180)-STEP(0, 3), 8: PAINT (160, 190), 8, 8
+  LINE (150, 192)-STEP(20, 100), 7, BF: LINE (165, 192)-STEP(5, 100), 8, BF: LINE (150, 192)-STEP(20, 20), 8
+  LINE (150, 194)-STEP(20, 20), 8: LINE (152, 198)-STEP(0, 100), 15: LINE (153, 199)-STEP(0, 100), 15: PAINT (160, 195), 8, 8
+  CIRCLE (100, 40), 15, 14, 2.14, 5: LINE (92, 29)-STEP(13, 22), 14: PAINT (90, 40), 14: CIRCLE (100, 40), 14, 15, 2.14, 5
+ELSEIF bgroundnum = 2 THEN
+  FOR k% = 1 TO 200: c% = INT(RND * 2) + 1: IF c% = 2 THEN c% = 9
+  PSET (INT(RND * 320), INT(RND * 200)), c%: NEXT k%: CIRCLE (100, 40), 15, 14, 2.14, 5
+  LINE (92, 29)-STEP(13, 22), 14: PAINT (90, 40), 14: CIRCLE (100, 40), 14, 15, 2.14, 5: LINE (0, 142)-STEP(320, 100), 8, BF:
+  LINE (0, 145)-STEP(320, 100), 6, BF: FOR r = 1 TO 240 STEP 25: CIRCLE (160, 180), r, 8, , , .1: CIRCLE (160, 180), r + 2, 2, , , .1: CIRCLE (160, 180), r + 4, 3, , , .1: NEXT r
+  FOR r = -1 TO 321: q = INT(RND * 2) + 2: IF q = 3 THEN q = 10
+  LINE (r, 150 + (ABS(r - 160) / 35))-STEP(INT(RND * 3) - 1, INT(RND * -30) - 5), q: NEXT r
+  FOR r = 1 TO 240 STEP 25: CIRCLE (160, 180), r, 8, , , .1: CIRCLE (160, 180), r + 2, 0, , , .1: CIRCLE (160, 180), r + 4, 8, , , .1: NEXT r
+  FOR r = 1 TO 150: LINE (INT(RND * 320) + 1, INT(RND * 50) + 150)-STEP(0, INT(RND * -5)), 2: NEXT r
+ELSEIF bgroundnum = 3 THEN
+  LINE (0, 100)-STEP(320, 100), 7, BF: FOR r = 100 TO 200: CIRCLE (INT(RND * 320) + 1, INT(RND * 100) + 100), INT(RND * 10) + 1, 8, , , .2: CIRCLE (INT(RND * 320) + 1, INT(RND * 100) + 100), INT(RND * 10) + 1, 3, , , .2
+  LINE (0, r)-STEP(INT(RND * 320), 0), 2: CIRCLE (INT(RND * 320) + 1, INT(RND * 100) + 100), INT(RND * 10) + 1, 7, , , .2: NEXT r
+  LINE (130, 100)-STEP(60, 0), 8: LINE (0, 160)-(15, 153), 6: LINE (320, 160)-(305, 153), 6: LINE (15, 153)-STEP(0, -153), 6: LINE (305, 153)-STEP(0, -153), 6
+  LINE (70, 128)-(130, 100), 6: LINE (250, 128)-(190, 100), 6: LINE (70, 128)-STEP(0, -151), 6: LINE (250, 128)-STEP(0, -151), 6: LINE (70, 128)-STEP(-55, 0), 6: LINE (250, 128)-STEP(55, 0), 6
+  PAINT (1, 1), 8, 6: PAINT (20, 1), 8, 6: PAINT (80, 1), 8, 6: PAINT (280, 1), 8, 6: PAINT (312, 1), 8, 6
+  LINE (130, 100)-STEP(0, -100), 6: LINE (190, 100)-STEP(0, -100), 6: FOR r = 1 TO 20: LINE (0, 160 - (r * 13))-(15, 153 - (r * 12)), 6: NEXT r
+  FOR r = 1 TO 20: LINE (70, 128 - (r * 8.75))-(130, 100 - (r * 5)), 6: NEXT r: FOR r = 1 TO 20: LINE (320, 160 - (r * 13))-(305, 153 - (r * 12)), 6: NEXT r
+  FOR r = 1 TO 20: LINE (250, 128 - (r * 8.75))-(190, 100 - (r * 5)), 6: NEXT r: FOR r = 1 TO 20: LINE (70, 128 - (r * 8.75))-STEP(-55, 0), 6: NEXT r
+  FOR r = 1 TO 20: LINE (250, 128 - (r * 8.75))-STEP(55, 0), 6: NEXT r: LINE (16, 37)-STEP(50, 50), 0, BF: LINE (15, 37)-STEP(51, 50), 6, B: LINE (254, 37)-STEP(50, 50), 0, BF: LINE (254, 37)-STEP(51, 50), 6, B
+  CIRCLE (107, 127), 35, 8, , , .1: PAINT (107, 127), 8: FOR b = 1 TO 300: y = INT(RND * 27) + 100: x = INT(RND * (27 + (y - 100))) + 80: s = INT(RND * 6) + 1: c1 = INT(RND * 8) + 1: c2 = INT(RND * 8) + 1: CIRCLE (x, y), s, c1: NEXT b
+  CIRCLE (250, 120), 18, 10, , , .25: LINE (232, 120)-(238, 158), 10: LINE (268, 120)-(262, 158), 10
+  CIRCLE (250, 157), 12, 10, 3.16, 0, .25: PAINT (250, 130), 8, 10: CIRCLE (250, 157), 12, 8, 3.16, 0, .25
+  FOR r = 1 TO 7: LINE (226 + (r * 6), 120)-(234 + (r * 4), 160 - (ABS(50 - (34 + (r * 4)))) / 7), 7: NEXT r
+  CIRCLE (250, 120), 18, 5, , , .25: PAINT (250, 120), 0, 5: CIRCLE (250, 120), 16, 8, , , .25: CIRCLE (250, 120), 18, 7, , , .25
+  FOR r = 15 TO 1 STEP -1: LINE (20 + r, 140 - r)-STEP(60 - (r / 2), 35), 8, BF: LINE (20 + r, 140 - r)-STEP(60 - (r / 2), 0), 6: NEXT r
+  LINE (20, 140)-STEP(60, 35), 6, BF: LINE (20 + r, 140 - r)-STEP(60 - (r / 2), 0), 8
+  DIM q(250): FOR t = 1 TO 25: qx = INT(RND * 277) + 2: qy = INT(RND * 157) + 2: GET (qx, qy)-STEP(40, 40), q: PUT (qx + INT(RND * 3) - 1, qy + INT(RND * 3) - 1), q, PSET: NEXT t: ERASE q
+  LINE (25, 145)-STEP(50, 25), 8, B: CIRCLE (200, 150), 25, 8, , , .25: PAINT (200, 150), 0, 8
+  FOR r = 1 TO 320: LINE (r, -300)-STEP(0, INT(RND * 400)), 8: NEXT r
+ELSEIF bgroundnum = 4 THEN
+  FOR r = 1 TO 50: CIRCLE (INT(RND * 320) + 1, INT(RND * 200) + 1), INT(RND * 100) + 1, 4: LINE (INT(RND * 640) - 160, INT(RND * 200) + 1)-(INT(RND * 320) + 1, INT(RND * 200) + 1), 8:
+  LINE (INT(RND * 640) - 160, INT(RND * 200) + 1)-(INT(RND * 320) + 1, INT(RND * 200) + 1), 4: NEXT r
+  LINE (0, 150)-STEP(320, 100), 4, BF: FOR r = -1 TO 321: q = INT(RND * 2) + 4: IF q = 5 THEN q = 12
+  LINE (r, 154 + (ABS(r - 160) / 35) + INT(RND * 2))-STEP(INT(RND * 3) - 1, INT(RND * -100) - 5), q: NEXT r
+  FOR r = -1 TO 321: q = INT(RND * 2) + 12: IF q = 13 THEN q = 14
+  LINE (r, 154 + (ABS(r - 160) / 35) + INT(RND * 2))-STEP(INT(RND * 3) - 1, INT(RND * -60) - 5), q: NEXT r
+  FOR r = -1 TO 321: q = INT(RND * 2) + 14: LINE (r, 154 + (ABS(r - 160) / 35) + INT(RND * 2) + 1)-STEP(INT(RND * 3) - 1, INT(RND * -30) - 5), q: NEXT r
+  FOR r = 1 TO 240 STEP 50: CIRCLE (160, 180), r + 7, 12, , , .1: CIRCLE (160, 180), r, 12, , , .1: CIRCLE (160, 180), r + 2, 15, , , .1: CIRCLE (160, 180), r + 4, 14, , , .1: NEXT r
+  FOR r = 1 TO 300: CIRCLE (INT(RND * 340) - 10, INT(RND * 80) + 1), INT(RND * 10) + 1, 8: NEXT r
+  FOR r = 1 TO 150: LINE (INT(RND * 320) + 1, INT(RND * 50) + 150)-STEP(0, INT(RND * -15)), 12: NEXT r
+  DIM q(250): FOR t = 1 TO 60: qx = INT(RND * 277) + 2: qy = INT(RND * 157) + 2: GET (qx, qy)-STEP(40, 40), q: PUT (qx + INT(RND * 3) - 1, qy + INT(RND * 3) - 1), q, PSET: NEXT t
+  FOR t = 1 TO 50: qx = INT(RND * 277) + 2: qy = INT(RND * 157) + 2: GET (qx, qy)-STEP(40, 40), q: PUT (qx, qy + 1), q, PSET: NEXT t: ERASE q
+  FOR t = 1 TO 5: PSET (INT(RND * 200) + 80, INT(RND * 10) - 10), 0: FOR r = 1 TO 40: LINE -STEP(INT(RND * 11) - 5, INT(RND * 5) + 1), 14: NEXT r: NEXT t
+ELSEIF bgroundnum = 5 THEN
+  LINE (35, 35)-STEP(250, 130), 7, BF: LINE (35, 35)-STEP(250, 130), 8, B: LINE (35, 35)-STEP(-60, -35), 8: LINE (285, 35)-STEP(60, -35), 8: LINE (285, 165)-STEP(60, 25), 8: LINE (35, 165)-STEP(-60, 25), 8:
+  PAINT (160, 10), 0, 8: PAINT (160, 190), 7, 8: PAINT (10, 100), 8, 8: PAINT (310, 100), 8, 8: LINE (0, 165)-STEP(320, 0), 8
+  LINE (40, 40)-STEP(240, 120), 0, B, 6: LINE (45, 45)-STEP(230, 40), 0, BF: LINE (44, 44)-STEP(232, 42), 8, B: LINE (43, 43)-STEP(234, 43), 8, B: LINE (44, 86)-STEP(232, 0), 15: CIRCLE (160, 182), 145, 15, , , .1: PAINT (160, 182), 15
+  CIRCLE (160, 18), 70, 8, , , .075: PAINT (160, 18), 8: CIRCLE (160, 18), 13, 7, 0, 3.28, .125: CIRCLE (160, 19), 13, 14, 0, 3.28, .125: CIRCLE (160, 20), 13, 15, , , .125: PAINT (160, 20), 15
+  FOR num% = 1 TO 15: q = INT(RND * 2) + 1: IF q = 2 THEN q = 9
+  PSET (INT(RND * 232) + 44, INT(RND * 41) + 45), q: NEXT num%
+  depth = 1.7: numlinesv = 15: FOR num% = 1 TO numlinesv: LINE (250 / numlinesv * num% + 35, 165)-(((250 * depth) / numlinesv * num%) - (((250 * depth) - 250) / 2) + 35, 200), 8: NEXT num%
+  LINE (0, 168)-STEP(320, 0), 8: LINE (0, 174)-STEP(320, 0), 8: LINE (0, 181)-STEP(320, 0), 8: LINE (0, 190)-STEP(320, 0), 8
+END IF
+
+LINE (10, 10)-STEP(life(1), 6), 8, BF: LINE (11, 11)-STEP(life(1) - 2, 4), 4, BF
+LINE (310, 10)-STEP(-life(2), 6), 8, BF: LINE (309, 11)-STEP(-life(2) + 2, 4), 4, BF
+LINE (10, 19)-STEP(stun(1), 3), 8, BF: LINE (11, 20)-STEP(stun(1) - 2, 1), 7, BF
+LINE (310, 19)-STEP(-stun(2), 3), 8, BF: LINE (309, 20)-STEP(-stun(2) + 2, 1), 7, BF
+
+
+SCREEN 7, , 1, 0
+
+END SUB
+
+SUB charselect
+fx 1
+SCREEN 7, , 2, 0: CLS : PAINT (1, 1), 0
+FOR q = -3 TO 320 STEP 18: LINE (q, 0)-STEP(0, 172), 8: NEXT q
+FOR q = -8 TO 180 STEP 18: LINE (0, q)-STEP(320, 0), 8: NEXT q
+FOR q = -3 TO 320 STEP 18: LINE (q, 172)-((q * 2) - 160, 200), 8: NEXT q
+FOR q = 2 TO 4: LINE (0, 172 + q ^ 2.25)-STEP(320, 0), 8: NEXT q
+'LINE (0, 0)-STEP(319, 199), 7, B
+COLOR 2
+LOCATE 10, 2: PRINT "NAME:":  LOCATE 10, 20: PRINT "NAME:": LOCATE 11, 2: PRINT "LIFE:": LOCATE 11, 20: PRINT "LIFE:": LOCATE 12, 2: PRINT "SPEED:": LOCATE 12, 20: PRINT "SPEED:"
+LOCATE 13, 2: PRINT "PUNCH:": LOCATE 13, 20: PRINT "PUNCH:": LOCATE 14, 2: PRINT "KICK :": LOCATE 14, 20: PRINT "KICK :": LOCATE 15, 2: PRINT "JUMP :": LOCATE 15, 20: PRINT "JUMP :"
+COLOR 10
+LOCATE 10, 2: PRINT "N":  LOCATE 10, 20: PRINT "N": LOCATE 11, 2: PRINT "L": LOCATE 11, 20: PRINT "L": LOCATE 12, 2: PRINT "S": LOCATE 12, 20: PRINT "S"
+LOCATE 13, 2: PRINT "P": LOCATE 13, 20: PRINT "P": LOCATE 14, 2: PRINT "K": LOCATE 14, 20: PRINT "K": LOCATE 15, 2: PRINT "J": LOCATE 15, 20: PRINT "J"
+LINE (10, 20)-STEP(290, 31), 0, BF
+LINE (10, 20)-STEP(290, 31), 5, B
+LINE (9, 19)-STEP(292, 33), 13, B
+LOCATE 4, 3:  COLOR 12: PRINT "  0  ": LOCATE 5, 3: COLOR 12: PRINT " |)\ ": LOCATE 6, 3: COLOR 9: PRINT " /'\ "
+LOCATE 4, 8:  COLOR 10: PRINT " *>* ": LOCATE 5, 8: COLOR 10: PRINT " _0)\": LOCATE 6, 8: COLOR 5: PRINT " /'\ "
+LOCATE 4, 13: COLOR 14: PRINT " o=o ": LOCATE 5, 13: COLOR 14: PRINT " <)> ": LOCATE 6, 13: COLOR 4: PRINT " /'\ ":
+LOCATE 4, 18: COLOR 8:  PRINT " /V\ ": LOCATE 5, 18: COLOR 7: PRINT "<(0)>": LOCATE 6, 18: COLOR 3: PRINT " /'\ "
+LOCATE 4, 23: COLOR 2:  PRINT "\.v. ": LOCATE 5, 23: COLOR 2: PRINT " \)_ ": LOCATE 6, 23: COLOR 8: PRINT " /'\ "
+LOCATE 4, 28: COLOR 2:  PRINT " >v< ": LOCATE 5, 28: COLOR 4: PRINT "_(0)_": LOCATE 6, 28: COLOR 8: PRINT " /'\ "
+LOCATE 4, 33: COLOR 10: PRINT " _o_ ": LOCATE 5, 33: COLOR 7: PRINT " -=) ": LOCATE 6, 33: COLOR 8: PRINT " /'\ "
+CIRCLE (90, 180), 45, 11, , , .1: PAINT (90, 180), 3, 11: CIRCLE (90, 180), 45, 8, 3.75, .5, .1
+CIRCLE (230, 180), 45, 10, , , .1: PAINT (230, 180), 2, 10: CIRCLE (230, 180), 45, 8, 3.75, .5, .1
+  LOCATE 2, 12: COLOR 8: PRINT "-C"; : COLOR 4: PRINT "A"; : COLOR 4: PRINT "R";
+  COLOR 12: PRINT "A"; : COLOR 12: PRINT "C"; : COLOR 14: PRINT "T"; : COLOR 14: PRINT "E"; : COLOR 15: PRINT "R"; : COLOR 14: PRINT " S"; : COLOR 12: PRINT "E"; : COLOR 12: PRINT "L"; : COLOR 4: PRINT "E"; : COLOR 4: PRINT "C"; : COLOR 8: PRINT  _
+"T-"
+  LOCATE 17, 3: COLOR 2: PRINT "WINS :"; :  COLOR 10: IF cuswins(1) = 0 THEN PRINT LTRIM$(RTRIM$(STR$(victories(1)))):  ELSE PRINT LTRIM$(RTRIM$(STR$(cuswins(1))))
+  LOCATE 17, 21: COLOR 2: PRINT "WINS :"; : COLOR 10: IF cuswins(2) = 0 THEN PRINT LTRIM$(RTRIM$(STR$(victories(2)))):  ELSE PRINT LTRIM$(RTRIM$(STR$(cuswins(2))))
+
+
+SCREEN 7, , 1, 0
+y(1) = 80: x(1) = 90
+y(2) = 80: x(2) = 230
+dir$(2) = "RIGHT"
+DIM arrowx(2), arrowy(2), destxx(2), c(2), Z(2, 10), onguy(2), still(2)
+arrowx(1) = 35: destxx(1) = 35
+arrowx(2) = 75: destxx(2) = 75
+c(1) = 3: c(2) = 2: angle = 10
+POS$(1) = "SELECT": POS$(2) = "SELECT"
+onguy(1) = 1: onguy(2) = 2: finalangle = angle / 57.32484
+ggosub "SELECT", 1: ggosub "SELECT", 2: qqq = 5: qqqqqq = 0: theending = 0
+
+DO: PCOPY 2, 1
+  LOCATE 10, 7: COLOR ABS(headc(1)): PRINT name$(1): LOCATE 10, 25: COLOR ABS(headc(2)): PRINT name$(2)
+  LINE (47, 80)-STEP(life(1) / 2, 6), 2, BF: LINE (48, 81)-STEP(life(1) / 2 - 2, 4), 10, BF: LINE (191, 80)-STEP(life(2) / 2, 6), 2, BF: LINE (192, 81)-STEP(life(2) / 2 - 2, 4), 10, BF
+  LINE (55, 88)-STEP((10 - speed(1)) * 6, 6), 2, BF: LINE (56, 89)-STEP((10 - speed(1)) * 6 - 2, 4), 8, BF: LINE (199, 88)-STEP((10 - speed(2)) * 6, 6), 2, BF: LINE (200, 89)-STEP((10 - speed(2)) * 6 - 2, 4), 8, BF
+  LINE (55, 96)-STEP(punchpow(1) * 3, 6), 2, BF: LINE (56, 97)-STEP(punchpow(1) * 3 - 2, 4), 8, BF: LINE (199, 96)-STEP(punchpow(2) * 3, 6), 2, BF: LINE (200, 97)-STEP(punchpow(2) * 3 - 2, 4), 8, BF
+  LINE (55, 104)-STEP(kickpow(1) * 3, 6), 2, BF: LINE (56, 105)-STEP(kickpow(1) * 3 - 2, 4), 8, BF: LINE (199, 104)-STEP(kickpow(2) * 3, 6), 2, BF: LINE (200, 105)-STEP(kickpow(2) * 3 - 2, 4), 8, BF
+  LINE (55, 112)-STEP(jumpheight(1), 6), 2, BF: LINE (56, 113)-STEP(jumpheight(1) - 2, 4), 8, BF: LINE (199, 112)-STEP(jumpheight(2), 6), 2, BF: LINE (200, 113)-STEP(jumpheight(2) - 2, 4), 8, BF
+  LOCATE 17, 3: COLOR 2: PRINT "WINS :"; :   COLOR 10:  PRINT LTRIM$(RTRIM$(STR$(victories(1)))) + SPACE$(4)
+  LOCATE 17, 21: COLOR 2: PRINT "WINS :"; : COLOR 10: PRINT LTRIM$(RTRIM$(STR$(victories(2)))) + SPACE$(4)
+  FOR plrnum = 1 TO 2
+    IF dir$(plrnum) = "RIGHT" THEN spin(plrnum) = 1:  ELSE : spin(plrnum) = -1
+    IF plrnum = 1 THEN oplrnum = 2:  ELSE oplrnum = 1
+    IF arrowy(plrnum) = 0 THEN
+      LINE (arrowx(plrnum), 54)-STEP(5, 5), c(plrnum): LINE (arrowx(plrnum), 54)-STEP(-5, 5), c(plrnum): LINE (arrowx(plrnum) - 5, 59)-STEP(10, 0), c(plrnum): PAINT (arrowx(plrnum), 56), c(plrnum)
+      LINE (arrowx(plrnum), 54)-STEP(5, 5), 8: LINE (arrowx(plrnum), 54)-STEP(-5, 5), c(plrnum) + 8: LINE (arrowx(plrnum) - 5, 59)-STEP(10, 0), 8
+    ELSE
+      LINE (arrowx(plrnum), 59 + (arrowy(plrnum) * 2))-STEP(5, -5), c(plrnum): LINE (arrowx(plrnum), 59 + (arrowy(plrnum) * 2))-STEP(-5, -5), c(plrnum): LINE (arrowx(plrnum) - 5, 54 + (arrowy(plrnum) * 2))-STEP(10, 0), c(plrnum)
+      PAINT (arrowx(plrnum), 56 + (arrowy(plrnum) * 2)), c(plrnum): LINE (arrowx(plrnum), 59 + (arrowy(plrnum) * 2))-STEP(5, -5), 8: LINE (arrowx(plrnum), 59 + (arrowy(plrnum) * 2))-STEP(-5, -5), 8
+      LINE (arrowx(plrnum) - 5, 54 + (arrowy(plrnum) * 2))-STEP(10, 0), c(plrnum) + 8
+    END IF: PSET (0, 59), 0
+    IF still(plrnum) = 0 THEN
+      IF a$ = dwn$(plrnum) AND arrowy(plrnum) < cheeeet(3) THEN arrowy(plrnum) = arrowy(plrnum) + 1: fx 18
+      IF a$ = up$(plrnum) AND arrowy(plrnum) > 0 THEN arrowy(plrnum) = arrowy(plrnum) - 1: fx 18
+      IF a$ = rght$(plrnum) THEN fx 47 + plrnum: destxx(plrnum) = destxx(plrnum) + 40: IF destxx(plrnum) > 275 THEN destxx(plrnum) = 35
+      IF a$ = lft$(plrnum) THEN fx 47 + plrnum: destxx(plrnum) = destxx(plrnum) - 40: IF destxx(plrnum) < 35 THEN destxx(plrnum) = 275
+      onguy(plrnum) = CINT((destxx(plrnum) - 35) / 40) + (1 - arrowy(plrnum)) + (arrowy(plrnum) * 8)
+      IF CINT(arrowx(plrnum)) = destxx(plrnum) THEN getguy plrnum, onguy(plrnum)
+      arrowx(plrnum) = CINT(arrowx(plrnum) + destxx(plrnum)) / 2
+    END IF
+    IF (a$ = hpunch$(plrnum) OR a$ = lpunch$(plrnum) OR a$ = hkick$(plrnum) OR a$ = lkick$(plrnum)) AND name$(plrnum) <> "CUSTOM" THEN
+    still(plrnum) = 5: arrowx(plrnum) = 1000: IF plrnum = 1 THEN dir$(plrnum) = "RIGHT": ggosub "WIN", plrnum:  ELSE dir$(plrnum) = "LEFT": ggosub "WIN", plrnum
+    END IF
+    IF still(plrnum) = 0 AND (angle = 180 OR angle = 190 OR angle = 350 OR angle = 0) THEN IF dir$(plrnum) = "RIGHT" THEN dir$(plrnum) = "LEFT":  ELSE dir$(plrnum) = "RIGHT"
+    angle = angle + 10: finalangle = angle / 57.32484
+    IF angle >= 360 THEN angle = angle - 360
+    IF still(plrnum) = 0 THEN
+    FOR num% = 1 TO 10
+    pixy(plrnum, num%) = desty(plrnum, num%)
+    pixx(plrnum, num%) = ((((x(plrnum) + 2) - destx(plrnum, num%)) * (COS(finalangle))) - ((0 * 38) * (SIN(finalangle)))) + (x(plrnum) + 2)
+    Z(plrnum, num%) = (((((x(plrnum) + 0) - destx(plrnum, num%)) / 38) * (SIN(finalangle))) + ((0) * (COS(finalangle)))): NEXT num%
+    ELSE
+    FOR b% = 1 TO 10: pixx(plrnum, b%) = (pixx(plrnum, b%) + ((destx(plrnum, b%) - pixx(plrnum, b%)) / (speed(plrnum) / 3))): pixy(plrnum, b%) = (pixy(plrnum, b%) + ((desty(plrnum, b%) - pixy(plrnum, b%)) / (speed(plrnum) / 3))): NEXT b%
+    END IF
+    IF onguy(plrnum) = 14 THEN LOCATE 17, 3 + ((plrnum - 1) * 18): COLOR 2: PRINT "WINS :"; :  COLOR 10: PRINT LTRIM$(RTRIM$(STR$(cuswins(1)))) + SPACE$(4)
+    CALL junk: CALL drawcrap
+  NEXT plrnum
+  IF (still(1) = 5 AND still(2) = 5) THEN theending = theending + 1
+PCOPY 1, 0: a$ = UCASE$(INKEY$): LOOP UNTIL a$ = " " OR a$ = CHR$(27) OR theending = 20
+theending = 0
+qqqqqq = 0: IF a$ = CHR$(27) THEN qqqqqq = 5: wipe 3
+
+ERASE c, Z, arrowx, destxx, onguy, arrowy
+SCREEN 7, , 2, 0: CLS
+SCREEN 7, , 1, 0: CLS
+DO: LOOP UNTIL INKEY$ = ""
+dir$(1) = "RIGHT"
+dir$(2) = "LEFT"
+qqq = 0
+
+
+END SUB
+
+SUB checkformove
+IF a$ = "" THEN EXIT SUB
+IF a$ = lpunch$(plrnum) OR a$ = hpunch$(plrnum) OR a$ = lkick$(plrnum) OR a$ = hkick$(plrnum) OR a$ = up$(plrnum) OR a$ = dwn$(plrnum) OR a$ = lft$(plrnum) OR a$ = rght$(plrnum) OR looppkey(plrnum) >= 7 THEN
+  FOR q% = 5 TO 2 STEP -1: pkey$(plrnum, q%) = pkey$(plrnum, q% - 1): NEXT q%: pkey$(plrnum, 1) = a$:
+  looppkey(plrnum) = 0
+END IF
+
+IF doingmove(plrnum) = 0 AND gettingmoved(plrnum) = 0 AND movenum(plrnum) = 0 AND y(plrnum) = 80 THEN
+  IF pkey$(plrnum, 1) = dwn$(plrnum) AND pkey$(plrnum, 2) = dwn$(plrnum) AND fireballsp(plrnum) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 1: powmoveframe(plrnum) = 0
+  IF pkey$(plrnum, 1) = rght$(plrnum) AND pkey$(plrnum, 2) = dwn$(plrnum) AND piledriverd(plrnum) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 2: powmoveframe(plrnum) = 0
+  IF pkey$(plrnum, 1) = lft$(plrnum) AND pkey$(plrnum, 2) = dwn$(plrnum) AND powerbomb(plrnum) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 3: powmoveframe(plrnum) = 0
+  IF pkey$(plrnum, 1) = lpunch$(plrnum) AND pkey$(plrnum, 2) = rght$(plrnum) AND pkey$(plrnum, 3) = rght$(plrnum) AND summersault(plrnum) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 4: powmoveframe(plrnum) = 0
+  IF pkey$(plrnum, 1) = lpunch$(plrnum) AND pkey$(plrnum, 2) = up$(plrnum) AND pkey$(plrnum, 3) = dwn$(plrnum) AND ddtd(plrnum) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 5: powmoveframe(plrnum) = 0
+  IF pkey$(plrnum, 1) = up$(plrnum) AND pkey$(plrnum, 2) = up$(plrnum) AND pkey$(plrnum, 3) = up$(plrnum) AND invisible(plrnum) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 6: powmoveframe(plrnum) = 0
+  IF pkey$(plrnum, 1) = dwn$(plrnum) AND pkey$(plrnum, 2) = up$(plrnum) AND pkey$(plrnum, 3) = dwn$(plrnum) AND suplex(plrnum) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 7: powmoveframe(plrnum) = 0
+  IF pkey$(plrnum, 1) = hpunch$(plrnum) AND pkey$(plrnum, 2) = up$(plrnum) AND pkey$(plrnum, 3) = dwn$(plrnum) AND bodyslam(plrnum) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 8: powmoveframe(plrnum) = 0
+  IF pkey$(plrnum, 1) = lkick$(plrnum) AND pkey$(plrnum, 2) = up$(plrnum) AND pkey$(plrnum, 3) = dwn$(plrnum) AND CINT(fired(plrnum)) > 0 THEN doingmove(plrnum) = 5: movenum(plrnum) = 9: powmoveframe(plrnum) = 0
+END IF
+
+END SUB
+
+SUB drawcrap
+qrq = biglegs(plrnum)
+IF cheeeet(2) = 5 THEN qqq = 2:  ELSE qqq = 1
+IF dir$(plrnum) = "RIGHT" THEN spin = 1:  ELSE spin = -1
+IF pictype(plrnum) = 1 THEN GOTO pictype1
+IF pictype(plrnum) = 2 THEN GOTO pictype2
+IF pictype(plrnum) = 3 THEN GOTO pictype3
+EXIT SUB
+        'N O R M A L     P I C  * * * * * * * * * * * * * * * * * * * * * * *
+pictype1:
+IF deathfall(plrnum) = 0 THEN CIRCLE ((pixx(plrnum, 6) + pixx(plrnum, 4)) / 2, 180), 25, 8, , , .15
+'arm 2
+IF bodyc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) - 1, pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) - 1)-(pixx(plrnum, 9), pixy(plrnum, 9)), bodyc(plrnum)
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) + 1, pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + 1)-(pixx(plrnum, 9), pixy(plrnum, 9)), bodyc(plrnum)
+END IF
+IF bigarm(plrnum) < 2 AND fistc1(plrnum) >= 0 THEN
+IF fistc2(plrnum) < 0 THEN fistc2(plrnum) = (-fistc2(plrnum)) + .1
+LINE (pixx(plrnum, 9) - ((spin * size(plrnum)) / 2), pixy(plrnum, 9) - (size(plrnum) / 2))-(pixx(plrnum, 10), pixy(plrnum, 10)), fistc1(plrnum)
+LINE (pixx(plrnum, 9) + ((spin * size(plrnum)) / 2), pixy(plrnum, 9) + (size(plrnum) / 2))-(pixx(plrnum, 10), pixy(plrnum, 10)), fistc2(plrnum)
+CIRCLE (pixx(plrnum, 10), pixy(plrnum, 10)), 2 * qqq, fistc1(plrnum): IF INSTR(1, STR$(fistc2(plrnum)), ".1") THEN fistc2(plrnum) = (-fistc2(plrnum)) + .1
+END IF
+'body
+IF bodyc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) - (spin * size(plrnum)), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) - size(plrnum))-(pixx(plrnum, 2), pixy(plrnum, 2)), bodyc(plrnum)
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) + (spin * size(plrnum)), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + size(plrnum))-(pixx(plrnum, 2), pixy(plrnum, 2)), bodyc(plrnum)
+END IF
+IF qrq <> 0 THEN SWAP size(plrnum), biglegs(plrnum)
+'upper legs
+IF legc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 2) - (spin * size(plrnum)), pixy(plrnum, 2) - size(plrnum))-(pixx(plrnum, 3), pixy(plrnum, 3)), legc(plrnum)
+LINE (pixx(plrnum, 2) + (spin * size(plrnum)), pixy(plrnum, 2) + size(plrnum))-(pixx(plrnum, 3), pixy(plrnum, 3)), legc(plrnum)
+LINE (pixx(plrnum, 2) - (spin * size(plrnum)), pixy(plrnum, 2) - size(plrnum))-(pixx(plrnum, 5), pixy(plrnum, 5)), legc(plrnum)
+LINE (pixx(plrnum, 2) + (spin * size(plrnum)), pixy(plrnum, 2) + size(plrnum))-(pixx(plrnum, 5), pixy(plrnum, 5)), legc(plrnum)
+END IF
+'lower legs
+IF bootc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 3) - ((spin * size(plrnum)) / 2), pixy(plrnum, 3) - (size(plrnum) / 2))-(pixx(plrnum, 4), pixy(plrnum, 4)), bootc(plrnum)
+LINE (pixx(plrnum, 3) + ((spin * size(plrnum)) / 2), pixy(plrnum, 3) + (size(plrnum) / 2))-(pixx(plrnum, 4), pixy(plrnum, 4)), bootc(plrnum)
+CIRCLE (pixx(plrnum, 4), pixy(plrnum, 4)), 4 * qqq, bootc(plrnum), , , .2
+LINE (pixx(plrnum, 5) - ((spin * size(plrnum)) / 2), pixy(plrnum, 5) - (size(plrnum) / 2))-(pixx(plrnum, 6), pixy(plrnum, 6)), bootc(plrnum)
+LINE (pixx(plrnum, 5) + ((spin * size(plrnum)) / 2), pixy(plrnum, 5) + (size(plrnum) / 2))-(pixx(plrnum, 6), pixy(plrnum, 6)), bootc(plrnum)
+CIRCLE (pixx(plrnum, 6), pixy(plrnum, 6)), 4 * qqq, bootc(plrnum), , , .2
+END IF
+IF qrq <> 0 THEN SWAP size(plrnum), biglegs(plrnum)
+'arm 1
+IF bodyc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) - 1, pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) - 1)-(pixx(plrnum, 7), pixy(plrnum, 7)), bodyc(plrnum)
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) + 1, pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + 1)-(pixx(plrnum, 7), pixy(plrnum, 7)), bodyc(plrnum)
+END IF
+IF bigarm(plrnum) = 0 AND fistc2(plrnum) >= 0 THEN
+IF fistc1(plrnum) < 0 THEN fistc1(plrnum) = (-fistc1(plrnum)) + .1
+LINE (pixx(plrnum, 7) - ((spin * size(plrnum)) / 2), pixy(plrnum, 7) - (size(plrnum) / 2))-(pixx(plrnum, 8), pixy(plrnum, 8)), fistc1(plrnum)
+LINE (pixx(plrnum, 7) + ((spin * size(plrnum)) / 2), pixy(plrnum, 7) + (size(plrnum) / 2))-(pixx(plrnum, 8), pixy(plrnum, 8)), fistc2(plrnum)
+CIRCLE (pixx(plrnum, 8), pixy(plrnum, 8)), 2 * qqq, fistc1(plrnum): IF INSTR(1, STR$(fistc1(plrnum)), ".1") THEN fistc1(plrnum) = (-fistc1(plrnum)) + .1
+END IF
+'head
+IF headc(plrnum) >= 0 THEN
+CIRCLE (pixx(plrnum, 1), pixy(plrnum, 1)), 11 * qqq, headc(plrnum)
+IF headc(plrnum) >= 8 THEN CIRCLE (pixx(plrnum, 1), pixy(plrnum, 1)), 11 * qqq, headc(plrnum) - 8, 4, 0
+IF headc(plrnum) = 7 THEN CIRCLE (pixx(plrnum, 1), pixy(plrnum, 1)), 11 * qqq, 8, 4, 0
+EXIT SUB
+END IF
+
+
+        'L I N E S    P I C  * * * * * * * * * * * * * * * * * * * * * * *
+pictype2:
+IF deathfall(plrnum) = 0 THEN CIRCLE ((pixx(plrnum, 6) + pixx(plrnum, 4)) / 2, 180), 25, 8, , , .15
+        'head
+IF headc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 1) + (5 * spin), pixy(plrnum, 1) + 5)-(pixx(plrnum, 1) + spin * (pixy(plrnum, 2) - pixy(plrnum, 1)) / 1.5, pixy(plrnum, 1) + 2), headc(plrnum)
+IF headc(plrnum) >= 8 THEN LINE (pixx(plrnum, 1) + (5 * spin), pixy(plrnum, 1) + 5)-(pixx(plrnum, 1) + spin * (pixy(plrnum, 2) - pixy(plrnum, 1)) / 1.5, pixy(plrnum, 1) + 2), headc(plrnum) - 8
+IF headc(plrnum) = 7 THEN LINE (pixx(plrnum, 1) + (5 * spin), pixy(plrnum, 1) + 5)-(pixx(plrnum, 1) + spin * (pixy(plrnum, 2) - pixy(plrnum, 1)) / 1.5, pixy(plrnum, 1) + 2), 8
+LINE (pixx(plrnum, 1) - (5 * spin), pixy(plrnum, 1) - 5)-(pixx(plrnum, 1) + spin * (pixy(plrnum, 2) - pixy(plrnum, 1)) / 1.5, pixy(plrnum, 1) + 2), headc(plrnum): IF cheeeet(2) = 5 THEN qqq = 2:  ELSE qqq = 1
+END IF
+        'body
+IF bodyc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) - (spin * size(plrnum)), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) - size(plrnum))-(pixx(plrnum, 2), pixy(plrnum, 2)), bodyc(plrnum)
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) + (spin * size(plrnum)), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + size(plrnum))-(pixx(plrnum, 2), pixy(plrnum, 2)), bodyc(plrnum)
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3))-(pixx(plrnum, 1), pixy(plrnum, 1)), headc(plrnum)
+END IF
+IF qrq <> 0 THEN SWAP size(plrnum), biglegs(plrnum)
+        'upper legs
+IF legc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 2) - (spin * size(plrnum)), pixy(plrnum, 2) - size(plrnum))-(pixx(plrnum, 3), pixy(plrnum, 3) + size(plrnum)), legc(plrnum)
+LINE (pixx(plrnum, 2) + (spin * size(plrnum)), pixy(plrnum, 2) + size(plrnum))-(pixx(plrnum, 3), pixy(plrnum, 3) + size(plrnum)), legc(plrnum)
+LINE (pixx(plrnum, 2) - (spin * size(plrnum)), pixy(plrnum, 2) - size(plrnum))-(pixx(plrnum, 5), pixy(plrnum, 5) + size(plrnum)), legc(plrnum)
+LINE (pixx(plrnum, 2) + (spin * size(plrnum)), pixy(plrnum, 2) + size(plrnum))-(pixx(plrnum, 5), pixy(plrnum, 5) + size(plrnum)), legc(plrnum)
+END IF
+        'lower legs
+IF bootc(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 3), pixy(plrnum, 3) + size(plrnum))-((pixx(plrnum, 2) + pixx(plrnum, 3)) / 2 - (size(plrnum) / 2), pixy(plrnum, 3)), bootc(plrnum)
+LINE ((pixx(plrnum, 2) + pixx(plrnum, 3)) / 2 - (size(plrnum) / 2), pixy(plrnum, 3))-(pixx(plrnum, 4), pixy(plrnum, 4)), bootc(plrnum)
+LINE ((pixx(plrnum, 2) + pixx(plrnum, 3)) / 2 - size(plrnum), pixy(plrnum, 3))-(pixx(plrnum, 4), pixy(plrnum, 4)), bootc(plrnum)
+LINE (pixx(plrnum, 5), pixy(plrnum, 5) + size(plrnum))-((pixx(plrnum, 2) + pixx(plrnum, 5)) / 2 - (size(plrnum) / 2), pixy(plrnum, 5)), bootc(plrnum)
+LINE ((pixx(plrnum, 2) + pixx(plrnum, 5)) / 2 - (size(plrnum) / 2), pixy(plrnum, 5))-(pixx(plrnum, 6), pixy(plrnum, 6)), bootc(plrnum)
+LINE ((pixx(plrnum, 2) + pixx(plrnum, 5)) / 2 - size(plrnum), pixy(plrnum, 5))-(pixx(plrnum, 6), pixy(plrnum, 6)), bootc(plrnum)
+        'foot 1
+LINE (pixx(plrnum, 4), pixy(plrnum, 4))-STEP(10 * spin, -2), bootc(plrnum)
+LINE (pixx(plrnum, 4) + 10 * spin, pixy(plrnum, 4) - 1)-STEP(5 * spin, 2), bootc(plrnum)
+LINE (pixx(plrnum, 4), pixy(plrnum, 4))-STEP(8 * spin, -1), bootc(plrnum)
+LINE (pixx(plrnum, 4) + 8 * spin, pixy(plrnum, 4) - 1)-STEP(5 * spin, 3), bootc(plrnum)
+        'foot 2
+LINE (pixx(plrnum, 6), pixy(plrnum, 6))-STEP(4 * spin, -1), bootc(plrnum)
+LINE (pixx(plrnum, 6) + 4 * spin, pixy(plrnum, 6) - 1)-STEP(2 * spin, 3), bootc(plrnum)
+LINE (pixx(plrnum, 6), pixy(plrnum, 6))-STEP(1 * spin, 0), bootc(plrnum)
+LINE (pixx(plrnum, 6) + 1 * spin, pixy(plrnum, 6) - 0)-STEP(1 * spin, 4), bootc(plrnum)
+END IF
+IF qrq <> 0 THEN SWAP size(plrnum), biglegs(plrnum)
+        'both arms and hands
+IF fistc1(plrnum) >= 0 AND fistc2(plrnum) >= 0 THEN
+IF bigarm(plrnum) < 2 AND fistc1(plrnum) >= 0 THEN LINE (pixx(plrnum, 9), pixy(plrnum, 9))-(pixx(plrnum, 10), pixy(plrnum, 10)), fistc2(plrnum): CIRCLE (pixx(plrnum, 10), pixy(plrnum, 10)), 2 * qqq, fistc1(plrnum)
+IF bigarm(plrnum) = 0 AND fistc2(plrnum) >= 0 THEN LINE (pixx(plrnum, 7), pixy(plrnum, 7))-(pixx(plrnum, 8), pixy(plrnum, 8)), fistc2(plrnum): CIRCLE (pixx(plrnum, 8), pixy(plrnum, 8)), 2 * qqq, fistc1(plrnum)
+EXIT SUB
+END IF
+
+        'C I R C L E S     P I C  * * * * * * * * * * * * * * * * * * * * * * *
+pictype3:
+IF deathfall(plrnum) = 0 THEN CIRCLE ((pixx(plrnum, 6) + pixx(plrnum, 4)) / 2, 180), 25, 8, , , .15
+IF qrq <> 0 THEN SWAP size(plrnum), biglegs(plrnum)
+        'upper legs and knees
+IF legc(plrnum) >= 0 THEN
+CIRCLE (pixx(plrnum, 2), pixy(plrnum, 2)), 2 + (size(plrnum) / 3) * qqq, legc(plrnum)
+CIRCLE ((pixx(plrnum, 2) + pixx(plrnum, 3)) / 2, (pixy(plrnum, 2) + pixy(plrnum, 3)) / 2), size(plrnum) / 1, legc(plrnum)
+CIRCLE ((pixx(plrnum, 2) + pixx(plrnum, 5)) / 2, (pixy(plrnum, 2) + pixy(plrnum, 5)) / 2), size(plrnum) / 1, legc(plrnum)
+CIRCLE (pixx(plrnum, 3), pixy(plrnum, 3)), size(plrnum) / 2, legc(plrnum)
+CIRCLE (pixx(plrnum, 5), pixy(plrnum, 5)), size(plrnum) / 2, legc(plrnum)
+END IF
+        'calvs and feet
+IF bootc(plrnum) >= 0 THEN
+CIRCLE ((pixx(plrnum, 3) + pixx(plrnum, 4)) / 2, (pixy(plrnum, 3) + pixy(plrnum, 4)) / 2), size(plrnum) / 1.5, bootc(plrnum)
+CIRCLE ((pixx(plrnum, 5) + pixx(plrnum, 6)) / 2, (pixy(plrnum, 5) + pixy(plrnum, 6)) / 2), size(plrnum) / 1.5, bootc(plrnum)
+CIRCLE (pixx(plrnum, 4), pixy(plrnum, 4)), 4 * qqq, bootc(plrnum), , , .2
+CIRCLE (pixx(plrnum, 6), pixy(plrnum, 6)), 4 * qqq, bootc(plrnum), , , .2
+END IF
+IF qrq <> 0 THEN SWAP size(plrnum), biglegs(plrnum)
+        'body
+IF size(plrnum) < 10 AND bodyc(plrnum) >= 0 THEN CIRCLE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + size(plrnum)), size(plrnum) * 3, bodyc(plrnum), , , .25
+IF size(plrnum) >= 10 AND size(plrnum) < 40 AND bodyc(plrnum) >= 0 THEN
+CIRCLE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + (size(plrnum) * .25)), size(plrnum) * 1, bodyc(plrnum), , , .25
+END IF
+        'biceps and elbows
+IF bodyc(plrnum) >= 0 THEN
+q = ((pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3)) + pixx(plrnum, 7)) / 2
+CIRCLE (q, ((pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + size(plrnum)) + pixy(plrnum, 7)) / 2), size(plrnum), bodyc(plrnum)
+CIRCLE (q, ((pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + size(plrnum)) + pixy(plrnum, 7)) / 2), size(plrnum), bodyc(plrnum)
+END IF
+IF fistc1(plrnum) >= 0 THEN CIRCLE (pixx(plrnum, 7), pixy(plrnum, 7)), size(plrnum) / 2, bodyc(plrnum)
+IF fistc1(plrnum) >= 0 THEN CIRCLE (pixx(plrnum, 9), pixy(plrnum, 9)), size(plrnum) / 2, bodyc(plrnum)
+
+        'forearms and fists
+IF fistc1(plrnum) >= 0 THEN
+IF bigarm(plrnum) = 0 THEN CIRCLE ((pixx(plrnum, 7) + pixx(plrnum, 8)) / 2, (pixy(plrnum, 7) + pixy(plrnum, 8)) / 2), size(plrnum) / 2.5, fistc2(plrnum)
+IF bigarm(plrnum) < 2 THEN CIRCLE ((pixx(plrnum, 9) + pixx(plrnum, 10)) / 2, (pixy(plrnum, 9) + pixy(plrnum, 10)) / 2), size(plrnum) / 2.5, fistc2(plrnum)
+CIRCLE (pixx(plrnum, 10), pixy(plrnum, 10)), 3 * qqq, fistc1(plrnum)
+CIRCLE (pixx(plrnum, 8), pixy(plrnum, 8)), 3 * qqq, fistc1(plrnum)
+END IF
+        'head
+IF headc(plrnum) >= 0 THEN CIRCLE (pixx(plrnum, 1), pixy(plrnum, 1)), 10 * qqq, headc(plrnum)
+IF headc(plrnum) >= 8 AND headc(plrnum) >= 0 THEN CIRCLE (pixx(plrnum, 1), pixy(plrnum, 1)), 10 * qqq, headc(plrnum) - 8, 4, 0
+IF headc(plrnum) = 7 AND headc(plrnum) >= 0 THEN CIRCLE (pixx(plrnum, 1), pixy(plrnum, 1)), 10 * qqq, 8, 4, 0
+
+
+
+END SUB
+
+SUB fx (fxx%)
+'       -When creating sounds-
+' Frequancy, Wave, Feedback, Modual, Clean
+        'SOUND FX
+SELECT CASE fxx%
+CASE IS = 1
+  SBPLAY1 36, 2, 0, 13, 258
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 18
+  FOR N = 1 TO 1: SBPLAY1 25, 0, 1000, 10, 261: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 19
+   SBPLAY1 1000, 121, 64, 10, 4
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 20
+  SBPLAY1 180, 0, 12, 132, 9
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 21
+  SBPLAY1 180, 0, 12, 132, 8
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 22
+  SBPLAY1 180, 0, 12, 132, 7
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 23
+  SBPLAY1 180, 0, 12, 131, 262
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 24
+  SBPLAY1 200, 0, 12, 130, 262
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 25
+  FOR N = 1 TO 10: SBPLAY1 234, 23, 2, 32, 8
+  SBPLAY1 200, 0, 12, 131, 293: : NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 26
+  FOR N = 1 TO 45: SBPLAY1 234, 23, 2, 32, 2
+  SBPLAY1 200, 0, 12, 131, 292: : NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 27
+  FOR N = 1 TO 45: SBPLAY1 255, 0, 14, 16, 9: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 28
+  FOR N = 1 TO 45: SBPLAY1 900, 121, 62, 10, 5: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 29
+  SBPLAY1 1550, 992, 88, 8, 6
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 30
+  FOR N = 1 TO 10: SBPLAY1 327, 10, 14, 500, 8: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 31
+  FOR N = 1 TO 45: SBPLAY1 50, 1, 0, 50, 259: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 33
+  FOR N = 1 TO 45: SBPLAY1 0, 1, 10, 1, 7: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 35
+  SBPLAY1 100, 8, 56, 5, 6
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 36
+  FOR N = 1 TO 45: SBPLAY1 14, 1, 14, 7, 260: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 38
+  FOR N = 1 TO 45: SBPLAY1 35, -1, 62, 0, 260: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 39
+  FOR N = 1 TO 45: SBPLAY1 60, 3, 14, 15, 4: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 40
+  FOR N = 1 TO 45: SBPLAY1 20, 3, 14, 14, 263: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 41
+  FOR N = 1 TO 45: SBPLAY1 0, 4, 1, 1, 1: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 42
+  SBPLAY1 15, 991, 88, 8, 5
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 43
+  FOR N = 1 TO 45: SBPLAY1 9, 100, 90, 13, 4: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 44
+  FOR N = 1 TO 45: SBPLAY1 180, 0, 22, 132, 262: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 45
+  FOR N = 1 TO 45: SBPLAY1 180, 0, 12, 132, 262: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 46
+  FOR N = 1 TO 20: SBPLAY1 160, 0, 22, 132, 7: NEXT N
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 47
+  SBPLAY1 800, 100, 50, 10, 4
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 48
+  SBPLAY1 36, 2, 0, 13, 262
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 49
+  SBPLAY1 43, 2, 0, 13, 262
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 50
+  SBPLAY1 420, 420, 420, 420, 420
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 51
+  SBPLAY1 150, 42, 12, 131, 7
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 52
+  SBPLAY1 50, 42, 12, 131, 7
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 53
+  SBPLAY1 50, 2, 12, 1, 7
+  CALL WriTeReg(&HB0, &H0)
+CASE IS = 54
+  SBPLAY1 50, 2, 12, 1, 7
+  CALL WriTeReg(&HB0, &H0)
+END SELECT
+
+
+
+
+
+END SUB
+
+SUB getguy (plrnum, guynum)
+dress(plrnum) = -1: batwings(plrnum) = -1: cape(plrnum) = -1: loincloth(plrnum) = -1: biglegs(plrnum) = 0
+robes(plrnum) = -1: bigarm(plrnum) = 0: headgear$(plrnum) = "0 0 0 0 0": biglegs(plrnum) = 0
+fireballc(plrnum) = 0: fireballsz(plrnum) = 0: fireballsp(plrnum) = 0: fireballr(plrnum) = 0: invisible(plrnum) = 0: piledriverd(plrnum) = 0: powerbomb(plrnum) = 0
+summersault(plrnum) = 0: ddtd(plrnum) = 0: suplex(plrnum) = 0: bodyslam(plrnum) = 0: fired(plrnum) = 0: firel(plrnum) = 0
+IF guynum = 1 THEN
+  name$(plrnum) = "BOB"
+  maxlife(plrnum) = 100
+  recover(plrnum) = .08
+  speed(plrnum) = 6
+  jumpheight(plrnum) = 22
+  punchpow(plrnum) = 8: kickpow(plrnum) = 4
+  size(plrnum) = 3
+  pictype(plrnum) = 1
+  headgear$(plrnum) = " 4 0 0 0 014"
+  headc(plrnum) = 12
+  bodyc(plrnum) = 12
+  bootc(plrnum) = 15
+  legc(plrnum) = 9
+  bootc(plrnum) = 9
+  fistc1(plrnum) = 12
+  fistc2(plrnum) = 4
+  fireballc(plrnum) = 7: fireballsz(plrnum) = 15: fireballsp(plrnum) = 10: fireballr(plrnum) = 100: piledriverd(plrnum) = 11: ddtd(plrnum) = 10: bodyslam(plrnum) = 9
+ELSEIF guynum = 2 THEN
+  name$(plrnum) = "FRED"
+  maxlife(plrnum) = 105
+  recover(plrnum) = .1
+  speed(plrnum) = 5
+  jumpheight(plrnum) = 25
+  punchpow(plrnum) = 9: kickpow(plrnum) = 6
+  size(plrnum) = 4
+  pictype(plrnum) = 2
+  loincloth(plrnum) = 5
+  headgear$(plrnum) = "100"
+  headc(plrnum) = 10
+  bodyc(plrnum) = 10
+  legc(plrnum) = 5
+  bootc(plrnum) = 2
+  fistc1(plrnum) = 10
+  fistc2(plrnum) = 2
+  fireballc(plrnum) = 13: fireballsz(plrnum) = 10: fireballsp(plrnum) = 12: fireballr(plrnum) = .2: powerbomb(plrnum) = 13: ddtd(plrnum) = 12: bodyslam(plrnum) = 11: : fired(plrnum) = 11.2: firel(plrnum) = 60.2
+ELSEIF guynum = 3 THEN
+  name$(plrnum) = "MAC"
+  maxlife(plrnum) = 80
+  recover(plrnum) = .075
+  speed(plrnum) = 4
+  jumpheight(plrnum) = 30
+  punchpow(plrnum) = 5: kickpow(plrnum) = 5
+  size(plrnum) = 1
+  pictype(plrnum) = 1
+  headgear$(plrnum) = "150 140"
+  headc(plrnum) = 14
+  bodyc(plrnum) = 14
+  legc(plrnum) = 4
+  bootc(plrnum) = 4
+  fistc1(plrnum) = 14
+  fistc2(plrnum) = 15
+  fireballc(plrnum) = 15: fireballsz(plrnum) = 30: fireballsp(plrnum) = 12: fireballr(plrnum) = 100: invisible(plrnum) = 75: summersault(plrnum) = 10: ddtd(plrnum) = 14
+ELSEIF guynum = 4 THEN
+  name$(plrnum) = "JACK"
+  maxlife(plrnum) = 100
+  recover(plrnum) = 0
+  speed(plrnum) = 5.5
+  jumpheight(plrnum) = 20
+  punchpow(plrnum) = 8: kickpow(plrnum) = 8
+  size(plrnum) = 4
+  pictype(plrnum) = 2
+  headgear$(plrnum) = "0 4"
+  headc(plrnum) = 8
+  bodyc(plrnum) = 7
+  legc(plrnum) = 3
+  bootc(plrnum) = 3
+  fistc1(plrnum) = 15
+  fistc2(plrnum) = 11
+  fireballc(plrnum) = 14: fireballsz(plrnum) = 15: fireballsp(plrnum) = 12: fireballr(plrnum) = .15: invisible(plrnum) = 50: powerbomb(plrnum) = 14: ddtd(plrnum) = 13: bodyslam(plrnum) = 15
+ELSEIF guynum = 5 THEN
+  name$(plrnum) = "ED"
+  maxlife(plrnum) = 110
+  recover(plrnum) = .08
+  speed(plrnum) = 8
+  jumpheight(plrnum) = 20
+  punchpow(plrnum) = 9: kickpow(plrnum) = 8
+  size(plrnum) = 10
+  pictype(plrnum) = 3
+  loincloth(plrnum) = 7
+  headgear$(plrnum) = "400"
+  headc(plrnum) = 15
+  bodyc(plrnum) = 2
+  legc(plrnum) = 8
+  bootc(plrnum) = 2
+  fistc1(plrnum) = 15
+  fistc2(plrnum) = 10
+  piledriverd(plrnum) = 11: powerbomb(plrnum) = 12: ddtd(plrnum) = 10: suplex(plrnum) = 9: bodyslam(plrnum) = 11
+ELSEIF guynum = 6 THEN
+  name$(plrnum) = "JUAN"
+  maxlife(plrnum) = 80
+  recover(plrnum) = .1
+  speed(plrnum) = 5
+  jumpheight(plrnum) = 30
+  punchpow(plrnum) = 7: kickpow(plrnum) = 3
+  size(plrnum) = 3
+  pictype(plrnum) = 1
+  headgear$(plrnum) = "102"
+  headc(plrnum) = 10
+  bodyc(plrnum) = 4
+  legc(plrnum) = 8
+  bootc(plrnum) = 8
+  fistc1(plrnum) = 7
+  fistc2(plrnum) = 4
+  invisible(plrnum) = 65: summersault(plrnum) = 12: suplex(plrnum) = 13: bodyslam(plrnum) = 12:  fired(plrnum) = 11.4: firel(plrnum) = 65.3
+ELSEIF guynum = 7 THEN
+  name$(plrnum) = "RAY"
+  maxlife(plrnum) = 80
+  recover(plrnum) = .08
+  speed(plrnum) = 6
+  jumpheight(plrnum) = 30
+  punchpow(plrnum) = 2: kickpow(plrnum) = 9
+  size(plrnum) = 4
+  pictype(plrnum) = 3
+  headgear$(plrnum) = "9"
+  headc(plrnum) = 10
+  bodyc(plrnum) = 7
+  legc(plrnum) = 8
+  bootc(plrnum) = 1
+  fistc1(plrnum) = 1
+  fistc2(plrnum) = 9
+  piledriverd(plrnum) = 14
+  summersault(plrnum) = 7: ddtd(plrnum) = 12: suplex(plrnum) = 10: bodyslam(plrnum) = 11
+ELSEIF guynum = 8 THEN
+  name$(plrnum) = "STAY PUFF"
+  maxlife(plrnum) = 130
+  recover(plrnum) = .1
+  speed(plrnum) = 2.8
+  jumpheight(plrnum) = 60
+  punchpow(plrnum) = 12: kickpow(plrnum) = 12
+  size(plrnum) = 22
+  pictype(plrnum) = 3
+  bigarm(plrnum) = 2
+  loincloth(plrnum) = 9
+  biglegs(plrnum) = 18
+  headgear$(plrnum) = "7 0 0 9 0"
+  headc(plrnum) = 15
+  bodyc(plrnum) = 15
+  legc(plrnum) = 7
+  bootc(plrnum) = 1
+  fistc1(plrnum) = 15
+  fistc2(plrnum) = 9
+  fireballc(plrnum) = 14: fireballsz(plrnum) = 40: fireballsp(plrnum) = 15: fireballr(plrnum) = 100: invisible(plrnum) = 100
+  piledriverd(plrnum) = 35: powerbomb(plrnum) = 35: summersault(plrnum) = 25: ddtd(plrnum) = 35: suplex(plrnum) = 35: bodyslam(plrnum) = 35: fired(plrnum) = 35: firel(plrnum) = 130
+ELSEIF guynum = 9 THEN
+  name$(plrnum) = "ASTRO MAN"
+  maxlife(plrnum) = 110
+  recover(plrnum) = .15
+  speed(plrnum) = 5
+  jumpheight(plrnum) = 55
+  punchpow(plrnum) = 12: kickpow(plrnum) = 8
+  size(plrnum) = 5
+  pictype(plrnum) = 1
+  cape(plrnum) = 12
+  headgear$(plrnum) = "12 0 0 4"
+  headc(plrnum) = 14
+  bodyc(plrnum) = 9
+  bootc(plrnum) = 14
+  legc(plrnum) = 4
+  fistc1(plrnum) = 14
+  fistc2(plrnum) = 14
+  fireballc(plrnum) = 4: fireballsz(plrnum) = 20: fireballsp(plrnum) = 14: fireballr(plrnum) = .2: invisible(plrnum) = 100: powerbomb(plrnum) = 14: summersault(plrnum) = 13: ddtd(plrnum) = 14
+ELSEIF guynum = 10 THEN
+  name$(plrnum) = "COFFEE"
+  maxlife(plrnum) = 25
+  recover(plrnum) = .175
+  speed(plrnum) = 2.15
+  jumpheight(plrnum) = 30
+  punchpow(plrnum) = 12: kickpow(plrnum) = 12
+  size(plrnum) = 0
+  pictype(plrnum) = 1
+  headgear$(plrnum) = "150"
+  headc(plrnum) = 15
+  bodyc(plrnum) = 15
+  legc(plrnum) = 13
+  bootc(plrnum) = 15
+  fistc1(plrnum) = 15
+  fistc2(plrnum) = 7
+  powerbomb(plrnum) = 14: summersault(plrnum) = 13: ddtd(plrnum) = 13: bodyslam(plrnum) = 14: fired(plrnum) = 15.4: firel(plrnum) = 50.2
+ELSEIF guynum = 11 THEN
+  name$(plrnum) = "PLOW"
+  maxlife(plrnum) = 80
+  recover(plrnum) = .04
+  speed(plrnum) = 8
+  jumpheight(plrnum) = 20
+  punchpow(plrnum) = 15: kickpow(plrnum) = 15
+  size(plrnum) = 20
+  pictype(plrnum) = 1
+  robes(plrnum) = 8
+  headgear$(plrnum) = "0 6"
+  headc(plrnum) = 14
+  bodyc(plrnum) = 8
+  legc(plrnum) = 14
+  bootc(plrnum) = 14
+  fistc1(plrnum) = 14
+  fistc2(plrnum) = 6
+  piledriverd(plrnum) = 18: powerbomb(plrnum) = 18: bodyslam(plrnum) = 18
+ELSEIF guynum = 12 THEN
+  name$(plrnum) = "BOBA FETT"
+  maxlife(plrnum) = 100
+  recover(plrnum) = .1
+  speed(plrnum) = 4
+  jumpheight(plrnum) = 40
+  punchpow(plrnum) = 9: kickpow(plrnum) = 8
+  size(plrnum) = 4
+  pictype(plrnum) = 1
+  cape(plrnum) = 6
+  headgear$(plrnum) = "0 7 7 4"
+  headc(plrnum) = 11
+  bodyc(plrnum) = 3
+  legc(plrnum) = 8
+  bootc(plrnum) = 8
+  fistc1(plrnum) = 7
+  fistc2(plrnum) = 4
+  fireballc(plrnum) = 14: fireballsz(plrnum) = 20: fireballsp(plrnum) = 14: fireballr(plrnum) = 100: invisible(plrnum) = 50
+  piledriverd(plrnum) = 14: powerbomb(plrnum) = 14: summersault(plrnum) = 13: ddtd(plrnum) = 13: suplex(plrnum) = 13: bodyslam(plrnum) = 15: fired(plrnum) = 13: firel(plrnum) = 75.3
+ELSEIF guynum = 13 THEN
+  name$(plrnum) = "RON"
+  maxlife(plrnum) = 105
+  recover(plrnum) = .15
+  speed(plrnum) = 4
+  jumpheight(plrnum) = 30
+  punchpow(plrnum) = 18: kickpow(plrnum) = 8
+  size(plrnum) = 5
+  pictype(plrnum) = 1
+  bigarm(plrnum) = 1
+  headgear$(plrnum) = "7 0 0 0 0 "
+  headc(plrnum) = 12
+  bodyc(plrnum) = 12
+  legc(plrnum) = 8
+  bootc(plrnum) = 8
+  fistc1(plrnum) = 12
+  fistc2(plrnum) = 2
+  fireballc(plrnum) = 10: fireballsz(plrnum) = 40: fireballsp(plrnum) = 16: fireballr(plrnum) = .01: invisible(plrnum) = 50
+  piledriverd(plrnum) = 20: powerbomb(plrnum) = 20: summersault(plrnum) = 20: ddtd(plrnum) = 19: suplex(plrnum) = 18: bodyslam(plrnum) = 20
+ELSEIF guynum = 14 THEN
+  IF TheDirectory$ = "" OR custom$(plrnum) = "" THEN EXIT SUB
+  OPEN "C:\" + TheDirectory$ + custom$(plrnum) + ".max" FOR INPUT AS #1
+  INPUT #1, name$(plrnum), q, q: INPUT #1, maxlife(plrnum), recover(plrnum)
+  INPUT #1, speed(plrnum), jumpheight(plrnum): INPUT #1, punchpow(plrnum), kickpow(plrnum)
+  INPUT #1, size(plrnum), pictype(plrnum): INPUT #1, robes(plrnum), dress(plrnum), bigarm(plrnum), cape(plrnum), batwings(plrnum), loincloth(plrnum), biglegs(plrnum)
+  INPUT #1, headgear$(plrnum): INPUT #1, headc(plrnum), bodyc(plrnum)
+  INPUT #1, legc(plrnum), bootc(plrnum): INPUT #1, fistc1(plrnum), fistc2(plrnum)
+  INPUT #1, fireballc(plrnum), fireballsz(plrnum): INPUT #1, fireballsp(plrnum), fireballr(plrnum), fireballfx%(plrnum)
+  INPUT #1, invisible(plrnum), piledriverd(plrnum): INPUT #1, powerbomb(plrnum), summersault(plrnum)
+  INPUT #1, ddtd(plrnum), suplex(plrnum), bodyslam(plrnum): INPUT #1, fired(plrnum), firel(plrnum)
+  CLOSE #1
+ELSEIF guynum = 15 THEN
+  name$(plrnum) = "LORD PLASMAR!"
+  maxlife(plrnum) = 120
+  recover(plrnum) = .08
+  speed(plrnum) = 6
+  jumpheight(plrnum) = 22
+  punchpow(plrnum) = 10: kickpow(plrnum) = 10
+  size(plrnum) = 10
+  pictype(plrnum) = 3
+  batwings(plrnum) = 13: robes(plrnum) = 8: dress(plrnum) = 8: loincloth(plrnum) = 14
+  headgear$(plrnum) = "140 0 0 14"
+  headc(plrnum) = 14
+  bodyc(plrnum) = 5
+  legc(plrnum) = -5
+  bootc(plrnum) = 13
+  fistc1(plrnum) = 13
+  fistc2(plrnum) = 13
+  fireballc(plrnum) = 7: fireballsz(plrnum) = 15: fireballsp(plrnum) = 12: fireballr(plrnum) = 100
+  invisible(plrnum) = 50: summersault(plrnum) = 12: ddtd(plrnum) = 12: suplex(plrnum) = 13
+ELSEIF guynum = 16 THEN
+  name$(plrnum) = "COSMIC MAN"
+  maxlife(plrnum) = 140
+  recover(plrnum) = .15
+  speed(plrnum) = 5
+  jumpheight(plrnum) = 55
+  punchpow(plrnum) = 12: kickpow(plrnum) = 8
+  size(plrnum) = 5
+  pictype(plrnum) = 1
+  cape(plrnum) = 7
+  headgear$(plrnum) = "4 0 0 8"
+  headc(plrnum) = 14
+  bodyc(plrnum) = 10
+  legc(plrnum) = 8
+  bootc(plrnum) = 14
+  fistc1(plrnum) = 14
+  fistc2(plrnum) = 14
+  fireballc(plrnum) = 10: fireballsz(plrnum) = 30: fireballsp(plrnum) = 16: fireballr(plrnum) = 100: invisible(plrnum) = 150
+  piledriverd(plrnum) = 14: powerbomb(plrnum) = 14: summersault(plrnum) = 13: ddtd(plrnum) = 13: suplex(plrnum) = 13: bodyslam(plrnum) = 15: fired(plrnum) = 10: firel(plrnum) = 100.2
+ELSEIF guynum = 17 THEN
+  name$(plrnum) = "THE PILE"
+  maxlife(plrnum) = 120
+  recover(plrnum) = .2
+  speed(plrnum) = 10
+  jumpheight(plrnum) = 0
+  punchpow(plrnum) = 20: kickpow(plrnum) = 20
+  size(plrnum) = 50
+  pictype(plrnum) = 3
+  loincloth(plrnum) = 6
+  headgear$(plrnum) = "15"
+  headc(plrnum) = -6
+  bodyc(plrnum) = 6
+  legc(plrnum) = 6
+  bootc(plrnum) = 6
+  fistc1(plrnum) = 6
+  fistc2(plrnum) = 6
+  piledriverd(plrnum) = 25: powerbomb(plrnum) = 33: ddtd(plrnum) = 32: suplex(plrnum) = 30: bodyslam(plrnum) = 30
+  firel(plrnum) = 65
+  fired(plrnum) = 30.2
+ELSEIF guynum = 18 THEN
+  name$(plrnum) = "BITCH PLOW"
+  maxlife(plrnum) = 80
+  recover(plrnum) = .05
+  speed(plrnum) = 7
+  jumpheight(plrnum) = 25
+  punchpow(plrnum) = 17: kickpow(plrnum) = 17
+  size(plrnum) = 20
+  pictype(plrnum) = 1
+  robes(plrnum) = 8
+  headgear$(plrnum) = "0 4"
+  headc(plrnum) = 8
+  bodyc(plrnum) = 8
+  legc(plrnum) = 4
+  bootc(plrnum) = 4
+  fistc1(plrnum) = 4
+  fistc2(plrnum) = 8
+  piledriverd(plrnum) = 20: powerbomb(plrnum) = 20: ddtd(plrnum) = 19
+  suplex(plrnum) = 18: bodyslam(plrnum) = 21:  fired(plrnum) = 19: firel(plrnum) = 65
+ELSEIF guynum = 19 THEN
+  name$(plrnum) = "SOME FIRE"
+  maxlife(plrnum) = 70
+  recover(plrnum) = .125
+  speed(plrnum) = 4
+  jumpheight(plrnum) = 0
+  punchpow(plrnum) = 10: kickpow(plrnum) = 10
+  size(plrnum) = 3
+  pictype(plrnum) = 4
+  dress(plrnum) = 14: cape(plrnum) = 12: robes(plrnum) = 4
+  headgear$(plrnum) = "0 0 4"
+  headc(plrnum) = 8
+  bodyc(plrnum) = 4
+  legc(plrnum) = 14
+  fistc1(plrnum) = 6
+  fistc2(plrnum) = 8
+  piledriverd(plrnum) = 14: ddtd(plrnum) = 13: suplex(plrnum) = 13: bodyslam(plrnum) = 14: fired(plrnum) = 11: firel(plrnum) = 70.3
+ELSEIF guynum = 20 THEN
+  name$(plrnum) = "JESUS"
+  maxlife(plrnum) = 2
+  recover(plrnum) = 0
+  speed(plrnum) = 10
+  jumpheight(plrnum) = 0
+  punchpow(plrnum) = 0: kickpow(plrnum) = 0
+  size(plrnum) = 0
+  pictype(plrnum) = 1
+  dress(plrnum) = 15: robes(plrnum) = 13
+  headgear$(plrnum) = "400 120"
+  headc(plrnum) = 12
+  bodyc(plrnum) = 13
+  legc(plrnum) = 15
+  bootc(plrnum) = 15
+  fistc1(plrnum) = 12
+  fistc2(plrnum) = 13
+  piledriverd(plrnum) = 140
+ELSEIF guynum = 21 THEN
+  name$(plrnum) = "THE DEVIL"
+  maxlife(plrnum) = 140
+  recover(plrnum) = 1
+  speed(plrnum) = 2.7
+  jumpheight(plrnum) = 90
+  punchpow(plrnum) = 139: kickpow(plrnum) = 139
+  size(plrnum) = 6
+  pictype(plrnum) = 1
+  batwings(plrnum) = 4
+  headgear$(plrnum) = "8 0 0 0 4"
+  headc(plrnum) = 4
+  bodyc(plrnum) = 4
+  legc(plrnum) = 4
+  bootc(plrnum) = 4
+  fistc1(plrnum) = 8
+  fistc2(plrnum) = 4
+  fireballc(plrnum) = 0: fireballsz(plrnum) = 60: fireballsp(plrnum) = 15: fireballr(plrnum) = .75: invisible(plrnum) = 200: powerbomb(plrnum) = 139: summersault(plrnum) = 139: ddtd(plrnum) = 139: suplex(plrnum) = 139: bodyslam(plrnum) = 139:
+  fired(plrnum) = 139: firel(plrnum) = 320
+END IF
+
+
+
+
+
+
+IF cheeeet(1) = 5 AND size(plrnum) > 40 THEN size(plrnum) = size(plrnum) / 2
+life(plrnum) = maxlife(plrnum)
+'pictype(plrnum) = 3
+END SUB
+
+SUB ggosub (stance$, plrnum)
+stance$ = UCASE$(stance$)
+  IF stance$ = "SELECT" THEN GOTO slct:
+  IF stance$ = "STAND" THEN GOTO stand:                                IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "RELAX" THEN GOTO relax:                                IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "JUMP" THEN GOTO jump:                                  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "LIMP AIR" THEN GOTO limpair:                           IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "DUCK" THEN GOTO duck:                                  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "HPUNCH" THEN GOTO hpunch:                              IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "LPUNCH" THEN GOTO lpunch:                              IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "HKICK" THEN GOTO hkick:                                IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "LKICK" THEN GOTO lkick:                                IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "LATAK1" THEN GOTO latak1:                              IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "LATAK2" THEN GOTO latak2:                              IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "WALK" THEN GOTO walk:                                  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "JATAK" THEN GOTO jatak:                                IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "HURT1" THEN GOTO hurt1:                                IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "HURT2" THEN GOTO hurt2:                                IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "DOWN" THEN GOTO down:                                  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "WIN" THEN GOTO winn:                                   IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "SHOOT" THEN GOTO shoot:                                IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "PILEDRIVE" THEN GOTO piledrive:                        IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "UPSIDEDOWN" THEN GOTO upsidedown:                      IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+  IF stance$ = "SLAM" THEN GOTO slamming:                              IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%: EXIT SUB:  ELSE EXIT SUB
+EXIT SUB
+slct:
+  destx(plrnum, 1) = 10 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 15 + x(plrnum): desty(plrnum, 3) = 80 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 100 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 5 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 5 + x(plrnum):  desty(plrnum, 7) = 50 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 0 + x(plrnum): desty(plrnum, 8) = 65 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 15 + x(plrnum): desty(plrnum, 9) = 50 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 20 + x(plrnum): desty(plrnum, 10) = 65 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+stand:
+  destx(plrnum, 1) = 20 + x(plrnum): desty(plrnum, 1) = 27 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum): desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 30 + x(plrnum): desty(plrnum, 3) = 75 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 10 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 0 + x(plrnum):  desty(plrnum, 7) = 50 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 20 + x(plrnum): desty(plrnum, 8) = 55 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 30 + x(plrnum): desty(plrnum, 9) = 50 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 20 + x(plrnum): desty(plrnum, 10) = 45 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+relax:
+  destx(plrnum, 1) = 10 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 20 + x(plrnum): desty(plrnum, 3) = 75 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 6 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 5 + x(plrnum):  desty(plrnum, 7) = 50 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 5 + x(plrnum): desty(plrnum, 8) = 65 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 15 + x(plrnum): desty(plrnum, 9) = 50 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 20 + x(plrnum): desty(plrnum, 10) = 60 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+hpunch:
+  destx(plrnum, 1) = 15 + x(plrnum): desty(plrnum, 1) = 18 + y(plrnum)  'head
+  destx(plrnum, 2) = 25 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 25 + x(plrnum): desty(plrnum, 3) = 75 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 20 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 10 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 45 + x(plrnum):  desty(plrnum, 7) = 25 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 60 + x(plrnum): desty(plrnum, 8) = 5 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 10 + x(plrnum): desty(plrnum, 9) = 50 + y(plrnum) 'elbow 2
+  destx(plrnum, 10) = 25 + x(plrnum): desty(plrnum, 10) = 60 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+lpunch:
+  IF dir$(plrnum) = "RIGHT" THEN x(plrnum) = x(plrnum) + 10
+  IF dir$(plrnum) = "LEFT" THEN x(plrnum) = x(plrnum) - 10
+  destx(plrnum, 1) = 25 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 25 + x(plrnum): desty(plrnum, 3) = 65 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 15 + x(plrnum): desty(plrnum, 4) = 85 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 0 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = -10 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 10 + x(plrnum):  desty(plrnum, 7) = 45 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = INT(RND * 20) - 20 + x(plrnum): desty(plrnum, 8) = 50 + y(plrnum)'hand 1
+  destx(plrnum, 9) = 42 + x(plrnum): desty(plrnum, 9) = 40 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 60 + x(plrnum): desty(plrnum, 10) = INT(RND * 15) + 40 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+hkick:
+  destx(plrnum, 1) = 10 + x(plrnum): desty(plrnum, 1) = 15 + y(plrnum)  'head
+  destx(plrnum, 2) = 25 + x(plrnum):  desty(plrnum, 2) = 50 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 25 + x(plrnum): desty(plrnum, 3) = 70 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 45 + x(plrnum):  desty(plrnum, 5) = 35 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 70 + x(plrnum):  desty(plrnum, 6) = 20 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 0 + x(plrnum):  desty(plrnum, 7) = 30 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 20 + x(plrnum): desty(plrnum, 8) = 15 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 5 + x(plrnum): desty(plrnum, 9) = 40 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 20 + x(plrnum): desty(plrnum, 10) = 45 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+lkick:
+  IF dir$(plrnum) = "RIGHT" THEN x(plrnum) = x(plrnum) + 5
+  IF dir$(plrnum) = "LEFT" THEN x(plrnum) = x(plrnum) - 5
+  destx(plrnum, 1) = 0 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum)  'head
+  destx(plrnum, 2) = 15 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 35 + x(plrnum): desty(plrnum, 3) = 53 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 60 + x(plrnum): desty(plrnum, 4) = INT(RND * 10) + 45 + y(plrnum)'foot 1
+  destx(plrnum, 5) = 5 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = -5 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = -5 + x(plrnum):  desty(plrnum, 7) = 50 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 10 + x(plrnum): desty(plrnum, 8) = 45 + y(plrnum) 'hand 1
+  destx(plrnum, 9) = 0 + x(plrnum): desty(plrnum, 9) = 50 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 15 + x(plrnum): desty(plrnum, 10) = 40 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+latak1:
+  destx(plrnum, 1) = 25 + x(plrnum): desty(plrnum, 1) = 55 + y(plrnum)   'head
+  destx(plrnum, 2) = 45 + x(plrnum):  desty(plrnum, 2) = 80 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 40 + x(plrnum): desty(plrnum, 3) = 85 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 70 + x(plrnum):  desty(plrnum, 5) = 85 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 95 + x(plrnum):  desty(plrnum, 6) = 95 + y(plrnum) 'foot 2
+   destx(plrnum, 7) = 30 + x(plrnum):  desty(plrnum, 7) = 65 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 50 + x(plrnum): desty(plrnum, 8) = 45 + y(plrnum) 'hand 1
+  destx(plrnum, 9) = 25 + x(plrnum): desty(plrnum, 9) = 80 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 30 + x(plrnum): desty(plrnum, 10) = 90 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+latak2:
+  IF dir$(plrnum) = "RIGHT" THEN x(plrnum) = x(plrnum) + 15
+  IF dir$(plrnum) = "LEFT" THEN x(plrnum) = x(plrnum) - 15
+  destx(plrnum, 1) = 55 + x(plrnum): desty(plrnum, 1) = 65 + y(plrnum)   'head
+  destx(plrnum, 2) = 45 + x(plrnum):  desty(plrnum, 2) = 85 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 65 + x(plrnum): desty(plrnum, 3) = 85 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 40 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 10 + x(plrnum):  desty(plrnum, 5) = 95 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = -10 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 28 + x(plrnum):  desty(plrnum, 7) = 80 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 10 + x(plrnum): desty(plrnum, 8) = 80 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 82 + x(plrnum): desty(plrnum, 9) = 65 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 60 + x(plrnum): desty(plrnum, 10) = 60 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+walk:
+  destx(plrnum, 1) = 20 + x(plrnum): desty(plrnum, 1) = 23 + y(plrnum)  'head
+  destx(plrnum, 2) = 5 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 20 + x(plrnum): desty(plrnum, 3) = 65 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 0 + x(plrnum): desty(plrnum, 4) = 75 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 0 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = -10 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = -5 + x(plrnum):  desty(plrnum, 7) = 40 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 0 + x(plrnum): desty(plrnum, 8) = 60 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 30 + x(plrnum): desty(plrnum, 9) = 50 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 30 + x(plrnum): desty(plrnum, 10) = 35 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+duck:
+  destx(plrnum, 1) = 30 + x(plrnum): desty(plrnum, 1) = 70 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 80 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 40 + x(plrnum): desty(plrnum, 3) = 85 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 10 + x(plrnum):  desty(plrnum, 5) = 85 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 5 + x(plrnum):  desty(plrnum, 7) = 75 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = -10 + x(plrnum): desty(plrnum, 8) = 90 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 30 + x(plrnum): desty(plrnum, 9) = 80 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 30 + x(plrnum): desty(plrnum, 10) = 95 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+jump:
+  IF stance$ = "JATACK" THEN EXIT SUB
+  destx(plrnum, 1) = 20 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 30 + x(plrnum): desty(plrnum, 3) = 55 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 75 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 15 + x(plrnum):  desty(plrnum, 5) = 50 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 80 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 0 + x(plrnum):  desty(plrnum, 7) = 30 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = -20 + x(plrnum): desty(plrnum, 8) = 35 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 30 + x(plrnum): desty(plrnum, 9) = 30 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 40 + x(plrnum): desty(plrnum, 10) = 35 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+limpair:
+  destx(plrnum, 1) = -10 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum) 'head
+  destx(plrnum, 2) = 20 + x(plrnum):  desty(plrnum, 2) = 35 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 35 + x(plrnum): desty(plrnum, 3) = 55 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 40 + x(plrnum): desty(plrnum, 4) = 75 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 20 + x(plrnum):  desty(plrnum, 5) = 25 + y(plrnum)   'knee 2
+  destx(plrnum, 6) = 20 + x(plrnum): desty(plrnum, 6) = 50 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = -15 + x(plrnum):  desty(plrnum, 7) = 35 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = -30 + x(plrnum): desty(plrnum, 8) = 40 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 15 + x(plrnum): desty(plrnum, 9) = 30 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 30 + x(plrnum): desty(plrnum, 10) = 35 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+jatak:
+  destx(plrnum, 1) = 20 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum)  'head
+  destx(plrnum, 2) = 40 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 50 + x(plrnum): desty(plrnum, 3) = 45 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 55 + x(plrnum): desty(plrnum, 4) = 75 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 50 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 60 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 40 + x(plrnum):  desty(plrnum, 7) = 30 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 35 + x(plrnum): desty(plrnum, 8) = 10 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 10 + x(plrnum): desty(plrnum, 9) = 40 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 30 + x(plrnum): desty(plrnum, 10) = 35 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+hurt1:
+  destx(plrnum, 1) = -10 + x(plrnum): desty(plrnum, 1) = 27 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 30 + x(plrnum): desty(plrnum, 3) = 65 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 35 + x(plrnum): desty(plrnum, 4) = 85 + y(plrnum)   'foot 1
+  destx(plrnum, 5) = 5 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = -10 + x(plrnum):  desty(plrnum, 7) = 50 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = -20 + x(plrnum): desty(plrnum, 8) = 45 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 20 + x(plrnum): desty(plrnum, 9) = 40 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 10 + x(plrnum): desty(plrnum, 10) = 45 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+hurt2:
+  destx(plrnum, 1) = 30 + x(plrnum): desty(plrnum, 1) = 30 + y(plrnum)  'head
+  destx(plrnum, 2) = 4 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 15 + x(plrnum): desty(plrnum, 3) = 75 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 15 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = -2 + x(plrnum):  desty(plrnum, 7) = 45 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 15 + x(plrnum): desty(plrnum, 8) = 50 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 25 + x(plrnum): desty(plrnum, 9) = 55 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 15 + x(plrnum): desty(plrnum, 10) = 47 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+down:
+  destx(plrnum, 1) = -40 + x(plrnum): desty(plrnum, 1) = 95 + y(plrnum)  'head
+  destx(plrnum, 2) = 5 + x(plrnum):  desty(plrnum, 2) = 95 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 25 + x(plrnum): desty(plrnum, 3) = 95 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 50 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 25 + x(plrnum):  desty(plrnum, 5) = 100 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 50 + x(plrnum):  desty(plrnum, 6) = 105 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = -18 + x(plrnum):  desty(plrnum, 7) = 102 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = -20 + x(plrnum): desty(plrnum, 8) = 110 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = -10 + x(plrnum): desty(plrnum, 9) = 90 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = -10 + x(plrnum): desty(plrnum, 10) = 85 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+winn:
+  destx(plrnum, 1) = 5 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 20 + x(plrnum): desty(plrnum, 3) = 75 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 6 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = -10 + x(plrnum):  desty(plrnum, 7) = 20 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = -20 + x(plrnum): desty(plrnum, 8) = 5 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 25 + x(plrnum): desty(plrnum, 9) = 20 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 35 + x(plrnum): desty(plrnum, 10) = 10 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+shoot:
+  IF dir$(plrnum) = "RIGHT" THEN x(plrnum) = x(plrnum) + 10
+  IF dir$(plrnum) = "LEFT" THEN x(plrnum) = x(plrnum) - 10
+  destx(plrnum, 1) = 25 + x(plrnum): desty(plrnum, 1) = 20 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 25 + x(plrnum): desty(plrnum, 3) = 65 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 15 + x(plrnum): desty(plrnum, 4) = 85 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 0 + x(plrnum):  desty(plrnum, 5) = 80 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = -10 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 42 + x(plrnum):  desty(plrnum, 7) = 40 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 60 + x(plrnum): desty(plrnum, 8) = 40 + y(plrnum)'hand 1
+  destx(plrnum, 9) = 42 + x(plrnum): desty(plrnum, 9) = 30 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 60 + x(plrnum): desty(plrnum, 10) = 25 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+piledrive:
+  destx(plrnum, 1) = 20 + x(plrnum): desty(plrnum, 1) = 40 + y(plrnum)  'head
+  destx(plrnum, 2) = 30 + x(plrnum):  desty(plrnum, 2) = 80 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 50 + x(plrnum): desty(plrnum, 3) = 70 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 65 + x(plrnum): desty(plrnum, 4) = 85 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 50 + x(plrnum):  desty(plrnum, 5) = 75 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 65 + x(plrnum):  desty(plrnum, 6) = 90 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 42 + x(plrnum):  desty(plrnum, 7) = 60 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 60 + x(plrnum): desty(plrnum, 8) = 60 + y(plrnum)'hand 1
+  destx(plrnum, 9) = 42 + x(plrnum): desty(plrnum, 9) = 50 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 60 + x(plrnum): desty(plrnum, 10) = 45 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+upsidedown:
+  destx(plrnum, 1) = 20 + x(plrnum): desty(plrnum, 1) = 90 + y(plrnum)  'head
+  destx(plrnum, 2) = 45 + x(plrnum):  desty(plrnum, 2) = 60 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 30 + x(plrnum): desty(plrnum, 3) = 50 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 50 + x(plrnum): desty(plrnum, 4) = 35 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 35 + x(plrnum):  desty(plrnum, 5) = 40 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 55 + x(plrnum):  desty(plrnum, 6) = 20 + y(plrnum)'foot 2
+  destx(plrnum, 7) = 50 + x(plrnum):  desty(plrnum, 7) = 75 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 30 + x(plrnum): desty(plrnum, 8) = 65 + y(plrnum)'hand 1
+  destx(plrnum, 9) = 25 + x(plrnum): desty(plrnum, 9) = 65 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 25 + x(plrnum): desty(plrnum, 10) = 50 + y(plrnum)'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+slamming:
+  destx(plrnum, 1) = 18 + x(plrnum): desty(plrnum, 1) = 17 + y(plrnum)  'head
+  destx(plrnum, 2) = 10 + x(plrnum):  desty(plrnum, 2) = 55 + y(plrnum)  'shlong
+  destx(plrnum, 3) = 15 + x(plrnum): desty(plrnum, 3) = 70 + y(plrnum)  'knee 1
+  destx(plrnum, 4) = 20 + x(plrnum): desty(plrnum, 4) = 95 + y(plrnum)  'foot 1
+  destx(plrnum, 5) = 5 + x(plrnum):  desty(plrnum, 5) = 78 + y(plrnum)  'knee 2
+  destx(plrnum, 6) = 0 + x(plrnum):  desty(plrnum, 6) = 100 + y(plrnum) 'foot 2
+  destx(plrnum, 7) = 32 + x(plrnum):  desty(plrnum, 7) = 20 + y(plrnum)  'elbow 1
+  destx(plrnum, 8) = 50 + x(plrnum): desty(plrnum, 8) = 10 + y(plrnum)  'hand 1
+  destx(plrnum, 9) = 35 + x(plrnum): desty(plrnum, 9) = 23 + y(plrnum)  'elbow 2
+  destx(plrnum, 10) = 55 + x(plrnum): desty(plrnum, 10) = 15 + y(plrnum) 'hand 2
+  IF dir$(plrnum) = "LEFT" THEN FOR num% = 1 TO 10: destx(plrnum, num%) = x(plrnum) + 30 - (destx(plrnum, num%) - x(plrnum)): NEXT num%
+  IF cheeeet(1) = 5 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = destx(plrnum, b%) / 2 + 80: desty(plrnum, b%) = desty(plrnum, b%) / 2 + 90: NEXT b%
+EXIT SUB
+
+
+
+
+
+
+
+
+
+END SUB
+
+SUB intro
+'qqqqqq = 5
+IF qqqqqq = 5 THEN GOTO r
+fx 1: SCREEN 7, , 1, 0: RANDOMIZE TIMER
+dir = 1: srx = 320: sry = 200: vz = 1.3: vx = 160: vy = 100: numpoints = 33
+DIM xx(numpoints), yy(numpoints), Z(numpoints), basex2(numpoints), basey2(numpoints), basez2(numpoints)
+DIM basex(numpoints), basey(numpoints), basez(numpoints), tempx(numpoints), tempz(numpoints)
+DIM starx(numpoints), stary(numpoints), starc(numpoints), stars(numpoints)
+FOR num% = 1 TO numpoints: starx(num%) = INT(RND * 318) + 1: stary(num%) = INT(RND * 198) + 1: starss = INT(RND * 8) + 1
+IF starss = 1 THEN stars(num%) = starss * 1.01: starc(num%) = 1
+IF starss = 2 THEN stars(num%) = starss * 1.01: starc(num%) = 8
+IF starss = 3 THEN stars(num%) = starss * 1.01: starc(num%) = 9
+IF starss = 4 THEN stars(num%) = starss * 1.01: starc(num%) = 3
+IF starss = 5 THEN stars(num%) = starss * 1.01: starc(num%) = 3
+IF starss = 6 THEN stars(num%) = starss * 1.01: starc(num%) = 7
+IF starss = 7 THEN stars(num%) = starss * 1.01: starc(num%) = 11
+IF starss = 8 THEN stars(num%) = starss * 1.01: starc(num%) = 15
+NEXT num%
+        'B  110 - 140
+basex2(1) = 110: basey2(1) = 120: basez2(1) = 0: basex2(2) = 110: basey2(2) = 80: basez2(2) = 0
+basex2(3) = 130: basey2(3) = 80: basez2(3) = 0: basex2(4) = 135: basey2(4) = 85: basez2(4) = 0
+basex2(5) = 135: basey2(5) = 90: basez2(5) = 0: basex2(6) = 130: basey2(6) = 95: basez2(6) = 0
+basex2(7) = 140: basey2(7) = 100: basez2(7) = 0: basex2(8) = 140: basey2(8) = 115: basez2(8) = 0
+basex2(9) = 130: basey2(9) = 120: basez2(9) = 0
+        '+   145 - 175
+basex2(10) = 145: basey2(10) = 95: basez2(10) = 0: basex2(11) = 155: basey2(11) = 95: basez2(11) = 0
+basex2(12) = 155: basey2(12) = 85: basez2(12) = 0: basex2(13) = 165: basey2(13) = 85: basez2(13) = 0
+basex2(14) = 165: basey2(14) = 95: basez2(14) = 0: basex2(15) = 175: basey2(15) = 95: basez2(15) = 0
+basex2(16) = 175: basey2(16) = 105: basez2(16) = 0: basex2(17) = 165: basey2(17) = 105: basez2(17) = 0
+basex2(18) = 165: basey2(18) = 115: basez2(18) = 0: basex2(19) = 155: basey2(19) = 115: basez2(19) = 0
+basex2(20) = 155: basey2(20) = 105: basez2(20) = 0: basex2(21) = 145: basey2(21) = 105: basez2(21) = 0
+        'S   180 - 210     80 - 120  30 wide
+basex2(22) = 180: basey2(22) = 110: basez2(22) = 0: basex2(23) = 190: basey2(23) = 110: basez2(23) = 0
+basex2(24) = 180: basey2(24) = 100: basez2(24) = 0: basex2(25) = 180: basey2(25) = 90: basez2(25) = 0
+basex2(26) = 190: basey2(26) = 80: basez2(26) = 0: basex2(27) = 200: basey2(27) = 80: basez2(27) = 0
+basex2(28) = 210: basey2(28) = 90: basez2(28) = 0: basex2(29) = 200: basey2(29) = 90: basez2(29) = 0
+basex2(30) = 210: basey2(30) = 100: basez2(30) = 0: basex2(31) = 210: basey2(31) = 110: basez2(31) = 0
+basex2(32) = 200: basey2(32) = 120: basez2(32) = 0: basex2(33) = 190: basey2(33) = 120: basez2(33) = 0
+rotate = 5
+
+FOR num% = 1 TO numpoints: basex(num%) = INT(RND * 200) + 80: basey(num%) = INT(RND * 180) + 10: basez(num%) = INT(RND * 6) - 3: NEXT num%
+DO: PCOPY 2, 1
+  IF rotate = 5 THEN angle = angle + 5
+  IF angle < 0 THEN angle = angle + 360
+  IF angle >= 360 THEN angle = angle - 360
+  angle = INT(angle): finalangle = angle / 57.32484
+  FOR num% = 1 TO numpoints
+    PSET (starx(num%), stary(num%)), 0: starx(num%) = starx(num%) - stars(num%): IF starx(num%) < 1 THEN starx(num%) = 320: stary(num%) = INT(RND * 198) + 1
+    PSET (starx(num%), stary(num%)), starc(num%)
+    IF basex(num%) < basex2(num%) THEN basex(num%) = basex(num%) + 2
+    IF basex(num%) > basex2(num%) THEN basex(num%) = basex(num%) - 2
+    IF basey(num%) < basey2(num%) THEN basey(num%) = basey(num%) + 1
+    IF basey(num%) > basey2(num%) THEN basey(num%) = basey(num%) - 1
+    IF basez(num%) < basez2(num%) THEN basez(num%) = basez(num%) + .05
+    IF basez(num%) > basez2(num%) THEN basez(num%) = basez(num%) - .05
+    tempx(num%) = ((((srx / 2) - basex(num%)) * (COS(finalangle))) - ((basez(num%) * 38) * (SIN(finalangle)))) + (srx / 2): tempz(num%) = (((((srx / 2) - basex(num%)) / 38) * (SIN(finalangle))) + ((basez(num%)) * (COS(finalangle))))
+    xx(num%) = ((tempx(num%) - vx) / ((tempz(num%) / 2) - vz)) + (srx / 2): yy(num%) = 200 - (((basey(num%) - vy) / ((tempz(num%) / 2) - vz)) + (sry / 2))
+  NEXT num%
+
+  COLOR 4
+  FOR q% = 1 TO 8: LINE (xx(q%), yy(q%))-(xx(q% + 1), yy(q% + 1)): NEXT q%
+  LINE (xx(1), yy(1))-(xx(9), yy(9))
+  COLOR 3
+  FOR q% = 10 TO 20: LINE (xx(q%), yy(q%))-(xx(q% + 1), yy(q% + 1)): NEXT q%
+  LINE (xx(10), yy(10))-(xx(21), yy(21))
+  COLOR 10
+  FOR q% = 22 TO 32: LINE (xx(q%), yy(q%))-(xx(q% + 1), yy(q% + 1)): NEXT q%
+  LINE (xx(22), yy(22))-(xx(33), yy(33))
+PCOPY 1, 0: LOOP UNTIL INKEY$ <> ""
+ERASE xx, yy, Z, basex2, basey2, basez2, basex, basey, basez, tempx, tempz, starx, stary, starc, stars
+fx 18: wipe 4
+r:
+SCREEN 7, , 2, 0
+LOCATE 2, 1: COLOR 4:  PRINT " ﬁ€‹ ‹€›    ‹€         ﬂ€‹€ﬂ €ﬂ€    ﬁ ›": LOCATE 3, 1: COLOR 4: PRINT " €€€‹€€›    ‹‹ €  ›    €›ﬂﬁ€ ›      € €"
+LOCATE 4, 1: COLOR 4:  PRINT " €€ﬂ€ﬂ€›‹ﬂ€‹ﬁ€ €€‹›    €   € €€  €‹ € €": LOCATE 5, 1: COLOR 12: PRINT " ﬁ€   €››  €ﬁ€ € ﬂ›    €   € ›   › ›€ €"
+LOCATE 6, 1: COLOR 14: PRINT "  €   € ﬂ‹ﬂ€ € €  ›    ›   ﬁ €‹€ › ›€‹€": LOCATE 7, 1: COLOR 15: PRINT "  ﬁ   ﬂ      ﬂ ﬁ  ›    ›   ﬁ       › ﬂ "
+LOCATE 9, 1:  COLOR 14: PRINT "REAL HARD €ﬂ  €‹ ﬂ€ﬂﬁ ›    ‹‹  € € €€ ": LOCATE 10, 1: COLOR 10: PRINT "      ﬁﬂﬂ‹ﬁﬂ  €‹› › ﬁﬂ› ‹ €ﬂ ﬂ €ﬁ›ﬁ€€›"
+LOCATE 11, 1: COLOR 2:  PRINT "       › € €‹ ﬂ ﬂ‹‹ ‹‹ € ›€    €€  €€ ": LOCATE 12, 1: COLOR 3: PRINT "       ﬂﬂ       ﬂ‹‹ﬁ ››€‹›€    €ﬁ› ﬁ› "
+LOCATE 13, 1: COLOR 8:  PRINT "                ‹‹ﬂﬁ  ›€ ›ﬂ€‹ﬂ € € ‹‹ "
+FOR r = 1 TO 15: CIRCLE (INT(RND * 320) + 1, INT(RND * 55) + 1), INT(RND * 35) + 1, 4: LINE (INT(RND * 320) + 1, INT(RND * 55) + 1)-(INT(RND * 320) + 1, INT(RND * 55) + 1), 4: NEXT r
+LOCATE 15, 15: COLOR 4:  PRINT "...............F.IgHT!"
+LOCATE 16, 15: COLOR 12: PRINT ".....In.StR.uC.ti0.nS@"
+LOCATE 17, 15: COLOR 10: PRINT "......w.E≠.rD..C.rA.p#"
+LOCATE 18, 15: COLOR 3:  PRINT "..cH.a.nGe..ButT.on.s$"
+LOCATE 19, 15: COLOR 7:  PRINT "...........q..U..I..t%"
+LOCATE 20, 15: COLOR 8:  PRINT ".....cU.sTo.m..cR.A.p^"
+LOCATE 21, 15: COLOR INT(RND * 15) + 1: PRINT ".....≠..dO.n'T..cA.Re*"
+arrowy = 1:
+restartmainmenu:
+SCREEN 7, , 1, 0
+dir$(1) = "RIGHT": x(1) = 20: y(1) = 80: plrnum = 1: getguy 1, INT(RND * 7) + 1: ggosub "RELAX", 1: IF cheeeet(1) = 5 THEN x(1) = -100: ggosub "RELAX", 1
+FOR num = 1 TO 10: pixx(1, num) = destx(1, num): pixy(1, num) = desty(1, num): NEXT num
+DO: PCOPY 2, 1: CIRCLE (50, 180), 50, 8, , , .1: PAINT (50, 180), 7, 8: CALL junk: CALL drawcrap
+oplrnum = 2: pixy(2, 1) = 105 + (arrowy * 15): pixx(2, 1) = 320
+LOCATE 14 + arrowy, 13: COLOR 5: PRINT ".-"; : COLOR 13: PRINT "$"
+IF a$ = up$ THEN fx 49: arrowy = arrowy - 1: IF arrowy < 1 THEN arrowy = 7
+IF a$ = dwn$ THEN fx 49: arrowy = arrowy + 1: IF arrowy > 7 THEN arrowy = 1
+PCOPY 1, 0: a$ = UCASE$(INKEY$): LOOP UNTIL a$ = " " OR a$ = CHR$(27): x(1) = 90
+IF arrowy = 7 THEN arrowy = INT(RND * 6) + 1
+IF arrowy = 1 AND a$ <> CHR$(27) THEN wipe 4: EXIT SUB
+IF a$ = CHR$(27) OR arrowy = 5 THEN
+  PCOPY 2, 1: LOCATE 16, 5: COLOR 8: PRINT "Q"; : COLOR 5: PRINT "U"; : COLOR 13: PRINT "I"; : COLOR 5: PRINT "T"; : COLOR 8: PRINT "?";
+  LOCATE 17, 5: COLOR 8: PRINT "(Y/N)": LOCATE 17, 6: COLOR 10: PRINT "Y": LOCATE 17, 8: COLOR 4: PRINT "N": CIRCLE (50, 127), 23, 7: CIRCLE (50, 127), 22, 14: PCOPY 1, 0
+  DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ = "Y" OR a$ = "N" OR a$ = CHR$(27): IF a$ = "N" THEN GOTO restartmainmenu:
+  LINE (1, 100)-STEP(77, 100), 0, BF: PCOPY 1, 0
+  IF custom$(1) <> "!&%(@)$&" THEN
+    LOCATE 15, 5: COLOR 3: PRINT "UPDATE": LOCATE 16, 5: COLOR 10: PRINT custom$(1); : COLOR 3: PRINT "?": LOCATE 17, 5: COLOR 3: PRINT "(Y/N)"
+    PCOPY 1, 0: DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ = "Y" OR a$ = "N" OR a$ = CHR$(27): IF a$ = "Y" THEN plrnum = 1: getguy 1, 14: updateguy
+  END IF
+  IF custom$(2) <> "!&%(@)$&" THEN
+    LOCATE 19, 5: COLOR 3: PRINT "UPDATE": LOCATE 20, 5: COLOR 10: PRINT custom$(2); : COLOR 3: PRINT "?": LOCATE 21, 5: COLOR 3: PRINT "(Y/N)"
+    PCOPY 1, 0: DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ = "Y" OR a$ = "N" OR a$ = CHR$(27): IF a$ = "Y" THEN plrnum = 2: getguy 2, 14: updateguy
+  END IF
+  SYSTEM
+ELSEIF arrowy = 2 THEN
+  wipe 1: SCREEN 7, , 3, 3: CLS : LOCATE 1, 1: COLOR 8: PRINT STRING$(40, "-")
+  LOCATE 1, 14: COLOR 8: PRINT "I"; : COLOR 4: PRINT "N"; : COLOR 4: PRINT "S"; : COLOR 12: PRINT "T"; : COLOR 14: PRINT "R"; : COLOR 15: PRINT "U"; : COLOR 15: PRINT "C";
+  COLOR 14: PRINT "T"; : COLOR 12: PRINT "I"; : COLOR 4: PRINT "O"; : COLOR 4: PRINT "N"; : COLOR 8: PRINT "S"
+  LOCATE 2, 6: COLOR 15: PRINT "D E F A U L T  B U T T O N S"
+  LOCATE 4, 1:  COLOR 10: PRINT "    PLAYER 1": LOCATE 5, 1: COLOR 3: PRINT "UP    - "; : COLOR 4: PRINT "UP ARROW": LOCATE 6, 1: COLOR 3: PRINT "DOWN  - "; : COLOR 4: PRINT "DOWN ARROW"
+  LOCATE 7, 1:  COLOR 3:  PRINT "LEFT  - "; : COLOR 4: PRINT "LEFT ARROW": LOCATE 8, 1: COLOR 3:  PRINT "RIGHT - "; : COLOR 4: PRINT "RIGHT ARROW"
+  LOCATE 10, 1: COLOR 3: PRINT "HIGH PUNCH - "; : COLOR 4: PRINT "'": LOCATE 11, 1: COLOR 3: PRINT "LOW PUNCH  - "; : COLOR 4: PRINT ";"
+  LOCATE 12, 1: COLOR 3:  PRINT "HIGH KICK  - "; : COLOR 4: PRINT ".": LOCATE 13, 1: COLOR 3: PRINT "LOW KICK   - "; : COLOR 4: PRINT "/"
+  LOCATE 4, 24:  COLOR 10: PRINT "   PLAYER 2": LOCATE 5, 24: COLOR 3: PRINT "UP    - "; : COLOR 4: PRINT "F": LOCATE 6, 24: COLOR 3: PRINT "DOWN  - "; : COLOR 4: PRINT "V"
+  LOCATE 7, 24:  COLOR 3:  PRINT "LEFT  - "; : COLOR 4: PRINT "C": LOCATE 8, 24: COLOR 3:  PRINT "RIGHT - "; : COLOR 4: PRINT "B"
+  LOCATE 10, 24: COLOR 3: PRINT "HIGH PUNCH - "; : COLOR 4: PRINT "W": LOCATE 11, 24: COLOR 3: PRINT "LOW PUNCH  - "; : COLOR 4: PRINT "Q"
+  LOCATE 12, 24: COLOR 3:  PRINT "HIGH KICK  - "; : COLOR 4: PRINT "S": LOCATE 13, 24: COLOR 3: PRINT "LOW KICK   - "; : COLOR 4: PRINT "A"
+  LOCATE 15: COLOR 8: PRINT "$%&Y0U CAN F≠GURE 0UT THE RE$T%$^&"
+  FOR r = 1 TO 320: LINE (r, -300)-STEP(0, INT(RND * 400)), 0: NEXT r
+  LOCATE 20: COLOR 8: PRINT "Press a key": DO: LOOP UNTIL INKEY$ <> "": GOTO restartmainmenu
+ELSEIF arrowy = 3 THEN
+  wipe 3: SCREEN 7, , 5, 3: CLS : LOCATE 1, 1: COLOR 8: PRINT STRING$(40, "-")
+  LOCATE 1, 17: COLOR 8: PRINT "W"; : COLOR 2: PRINT "E"; : COLOR 10: PRINT "I"; : COLOR 14: PRINT "R";
+  COLOR 15: PRINT "D "; : COLOR 14: PRINT "C"; : COLOR 10: PRINT "R"; : COLOR 2: PRINT "A"; : COLOR 8: PRINT "P"
+  LOCATE 10, 8: COLOR 1:  PRINT ".....M.≠DgET.w.Res.TL≠nG*-{"
+  LOCATE 11, 8: COLOR 5:  PRINT "...g.00.fE.y..f≠G.htE.rs&-{"
+  LOCATE 12, 8: COLOR 13: PRINT "...sEc.ReT cH.a.RAcTeR.S^-{"
+  LOCATE 13, 8: COLOR 14: PRINT "...........c0n.f.U.sio.N%-{"
+  LOCATE 14, 8: COLOR 13: PRINT "....sTo.N.Ed..FiG.ht.≠Ng$-{"
+  LOCATE 15, 8: COLOR 5:  PRINT ".........w.Ra.P..Aro.Un.D-{"
+  LOCATE 16, 8: COLOR 1:  PRINT "....m.AkE..s0u.nD..W.or.k-{"; : COLOR 8: PRINT "OFF"
+  LOCATE 17, 8: COLOR 10:  PRINT ".....................all done"
+  a$ = "": arrowy = 1: SCREEN 7, , 4, 3: CLS : DO: PCOPY 5, 4: LOCATE 9 + arrowy, 6: COLOR 4: PRINT "˘*"; : COLOR 12: PRINT "%": IF a$ = "!" THEN cheeeet(3) = 2: fx 47
+  IF a$ = up$ THEN fx 46: arrowy = arrowy - 1: IF arrowy < 1 THEN arrowy = 8
+  IF a$ = dwn$ THEN fx 46: arrowy = arrowy + 1: IF arrowy > 8 THEN arrowy = 1
+  IF (a$ = " " OR a$ = lft$ OR a$ = rght$) AND arrowy < 7 THEN IF cheeeet(arrowy) = 0 THEN cheeeet(arrowy) = 5: fx 49 ELSE cheeeet(arrowy) = 0: fx 48
+  IF cheeeet(3) = 5 THEN cheeeet(3) = 1
+  FOR r = 1 TO 6: LOCATE 9 + r, 35: IF cheeeet(r) > 0 THEN COLOR 10: PRINT "ON":  ELSE COLOR 8: PRINT "OFF"
+  NEXT r: IF cheeeet(3) = 2 THEN LOCATE 12, 35: COLOR 11: PRINT "ALL"
+  IF a$ = " " AND arrowy = 7 THEN LOCATE 16, 35: COLOR 10: PRINT "ON ": PCOPY 4, 3: FOR t = 1 TO 20: FOR f% = 1 TO 54: fx f%: NEXT f%: NEXT t
+  PCOPY 4, 3: a$ = UCASE$(INKEY$): LOOP UNTIL (a$ = " " AND arrowy = 8) OR a$ = CHR$(27): arrowy = 3: GOTO restartmainmenu
+ELSEIF arrowy = 4 THEN
+  wipe 1: SCREEN 7, , 3, 3: CLS : LOCATE 1, 1: COLOR 8: PRINT STRING$(40, "-")
+  LOCATE 1, 13: COLOR 8: PRINT "C"; : COLOR 3: PRINT "H"; : COLOR 2: PRINT "A"; : COLOR 2: PRINT "N"; : COLOR 10: PRINT "G"; : COLOR 14: PRINT "E";
+  COLOR 15: PRINT " "; : COLOR 15: PRINT "B"; : COLOR 14: PRINT "U"; : COLOR 10: PRINT "T"; : COLOR 2: PRINT "T"; : COLOR 2: PRINT "O"; : COLOR 3: PRINT "N"; : COLOR 8: PRINT "S"
+  LOCATE 2, 6: COLOR 15: PRINT "D E F A U L T  B U T T O N S"
+  LOCATE 4, 1:  COLOR 2: PRINT "    PLAYER 1": LOCATE 5, 1: COLOR 3: PRINT "UP    - "; : COLOR 4: PRINT "UP ARROW": LOCATE 6, 1: COLOR 3: PRINT "DOWN  - "; : COLOR 4: PRINT "DOWN ARROW"
+  LOCATE 7, 1:  COLOR 3:  PRINT "LEFT  - "; : COLOR 4: PRINT "LEFT ARROW": LOCATE 8, 1: COLOR 3:  PRINT "RIGHT - "; : COLOR 4: PRINT "RIGHT ARROW"
+  LOCATE 10, 1: COLOR 3: PRINT "HIGH PUNCH - "; : COLOR 4: PRINT "'": LOCATE 11, 1: COLOR 3: PRINT "LOW PUNCH  - "; : COLOR 4: PRINT ";"
+  LOCATE 12, 1: COLOR 3:  PRINT "HIGH KICK  - "; : COLOR 4: PRINT ".": LOCATE 13, 1: COLOR 3: PRINT "LOW KICK   - "; : COLOR 4: PRINT "/"
+  LOCATE 4, 24:  COLOR 2: PRINT "   PLAYER 2": LOCATE 5, 24: COLOR 3: PRINT "UP    - "; : COLOR 4: PRINT "F": LOCATE 6, 24: COLOR 3: PRINT "DOWN  - "; : COLOR 4: PRINT "V"
+  LOCATE 7, 24:  COLOR 3:  PRINT "LEFT  - "; : COLOR 4: PRINT "C": LOCATE 8, 24: COLOR 3:  PRINT "RIGHT - "; : COLOR 4: PRINT "B"
+  LOCATE 10, 24: COLOR 3: PRINT "HIGH PUNCH - "; : COLOR 4: PRINT "W": LOCATE 11, 24: COLOR 3: PRINT "LOW PUNCH  - "; : COLOR 4: PRINT "Q"
+  LOCATE 12, 24: COLOR 3:  PRINT "HIGH KICK  - "; : COLOR 4: PRINT "S": LOCATE 13, 24: COLOR 3: PRINT "LOW KICK   - "; : COLOR 4: PRINT "A"
+  FOR r = 1 TO 320: LINE (r, -300)-STEP(0, INT(RND * 400)), 0: NEXT r
+  LOCATE 15: COLOR 10: PRINT "CHANGE PLAYER   0, 1 or 2?": DO: a$ = INKEY$: LOOP UNTIL a$ = "1" OR a$ = "2" OR a$ = "0" OR a$ = CHR$(27): q = VAL(a$): LOCATE 15: COLOR 2: PRINT "CHANGING "; a$ + SPACE$(20)
+  IF a$ = "0" OR a$ = CHR$(27) THEN GOTO restartmainmenu:
+  LOCATE 16: COLOR 10: PRINT "PRESS UP :": DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ <> "": up$(q) = a$: IF LEN(a$) > 1 THEN up$(q) = CHR$(0) + MID$(a$, 2, 1): up$(q) = a$
+  LOCATE 16: COLOR 8: PRINT "PRESS UP : "; : COLOR 4: PRINT up$(q)
+  LOCATE 17: COLOR 10: PRINT "PRESS DOWN :": DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ <> "": dwn$(q) = a$: IF LEN(a$) > 1 THEN dwn$(q) = CHR$(0) + MID$(a$, 2, 1): dwn$(q) = a$
+  LOCATE 17: COLOR 8: PRINT "PRESS DOWN : "; : COLOR 4: PRINT dwn$(q)
+  LOCATE 18: COLOR 10: PRINT "PRESS LEFT :": DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ <> "": lft$(q) = a$: IF LEN(a$) > 1 THEN lft$(q) = CHR$(0) + MID$(a$, 2, 1): lft$(q) = a$
+  LOCATE 18: COLOR 8: PRINT "PRESS LEFT : "; : COLOR 4: PRINT lft$(q)
+  LOCATE 19: COLOR 10: PRINT "PRESS RIGHT :": DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ <> "": rght$(q) = a$: IF LEN(a$) > 1 THEN rght$(q) = CHR$(0) + MID$(a$, 2, 1): rght$(q) = a$
+  LOCATE 19: COLOR 8: PRINT "PRESS RIGHT : "; : COLOR 4: PRINT rght$(q)
+  LOCATE 16, 18: COLOR 10: PRINT "PRESS HIGH PUNCH :": DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ <> "": hpunch$(q) = a$: IF LEN(a$) > 1 THEN hpunch$(q) = CHR$(0) + MID$(a$, 2, 1): hpunch$(q) = a$
+  LOCATE 16, 18: COLOR 8: PRINT "PRESS HIGH PUNCH : "; : COLOR 4: PRINT hpunch$(q)
+  LOCATE 17, 18: COLOR 10: PRINT "PRESS LOW PUNCH :": DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ <> "": lpunch$(q) = a$: IF LEN(a$) > 1 THEN lpunch$(q) = CHR$(0) + MID$(a$, 2, 1): lpunch$(q) = a$
+  LOCATE 17, 18: COLOR 8: PRINT "PRESS LOW PUNCH : "; : COLOR 4: PRINT lpunch$(q)
+  LOCATE 18, 18: COLOR 10: PRINT "PRESS HIGH KICK :":  DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ <> "": hkick$(q) = a$: IF LEN(a$) > 1 THEN hkick$(q) = CHR$(0) + MID$(a$, 2, 1): hkick$(q) = a$
+  LOCATE 18, 18: COLOR 8: PRINT "PRESS HIGH KICK : "; : COLOR 4: PRINT hkick$(q)
+  LOCATE 19, 18: COLOR 10: PRINT "PRESS LOW KICK :":  DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ <> "": lkick$(q) = a$: IF LEN(a$) > 1 THEN lkick$(q) = CHR$(0) + MID$(a$, 2, 1): lkick$(q) = a$
+  LOCATE 19, 18: COLOR 8: PRINT "PRESS LOW KICK : "; : COLOR 4: PRINT lkick$(q)
+  LOCATE 22: COLOR 10: PRINT "Press a key": DO: LOOP UNTIL INKEY$ <> "": GOTO restartmainmenu
+ELSEIF arrowy = 6 THEN
+  wipe 3: SCREEN 7, , 4, 3: CLS : COLOR 8
+  FOR q = -3 TO 320 STEP 18: LINE (q, 0)-STEP(0, 172), 8: NEXT q: FOR q = -8 TO 180 STEP 18: LINE (0, q)-STEP(320, 0), 8: NEXT q
+  FOR q = -3 TO 320 STEP 18: LINE (q, 172)-((q * 2) - 160, 200), 8: NEXT q: FOR q = 2 TO 4: LINE (0, 172 + q ^ 2.25)-STEP(320, 0), 8: NEXT q
+  CIRCLE (160, 185), 12, 3, , , .15: CIRCLE (160, 185), 32, 3, , , .15: CIRCLE (160, 185), 52, 3, , , .15
+  CIRCLE (160, 185), 11, 2, , , .15: CIRCLE (160, 185), 31, 2, , , .15: CIRCLE (160, 185), 51, 2, , , .15
+  CIRCLE (160, 185), 10, 10, , , .15: CIRCLE (160, 185), 30, 10, , , .15: CIRCLE (160, 185), 50, 10, , , .15
+  PRINT STRING$(40, "-"): LOCATE 1, 14: COLOR 8: PRINT "L"; : COLOR 5: PRINT "O"; : COLOR 5: PRINT "A"; : COLOR 13: PRINT "D"; : COLOR 14: PRINT "/";
+  COLOR 13: PRINT "S"; : COLOR 5: PRINT "A"; : COLOR 5: PRINT "V"; : COLOR 8: PRINT "E"
+  SCREEN 7, , 3, 3: PCOPY 4, 3: q1 = 0: q2 = 0
+  t$ = "!&%(@)$&": SWAP custom$(1), t$: x(1) = 140: y(1) = 85: getguy 1, 14: ggosub "RELAX", 1: FOR num = 1 TO 10: pixx(1, num) = destx(1, num): pixy(1, num) = desty(1, num): NEXT num: junk: drawcrap: SWAP custom$(1), t$
+  LOCATE 4, 11: COLOR 3: PRINT "(L)OAD / (S)AVE?": LOCATE 4, 12: COLOR 10: PRINT "L": LOCATE 4, 21: PRINT "S"
+  DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ = "L" OR a$ = "S" OR a$ = CHR$(27): IF a$ = CHR$(27) THEN GOTO restartmainmenu
+  IF a$ = "S" THEN
+   IF custom$(1) <> "!&%(@)$&" THEN q1 = 1
+   IF custom$(2) <> "!&%(@)$&" THEN q2 = 1
+   IF q1 = 0 AND q2 = 0 THEN LOCATE 5, 12: COLOR 4: PRINT "NO ONE TO SAVE!": LOCATE 7, 12: COLOR 8: PRINT "Press a key": DO: LOOP UNTIL INKEY$ <> "": GOTO restartmainmenu
+   IF q1 = 1 THEN
+     LOCATE 5, 12: COLOR 3: PRINT "Save "; : COLOR 10: PRINT custom$(1); : COLOR 3: PRINT "?": LOCATE 6, 15: COLOR 3: PRINT "(Y/N)": COLOR 10: LOCATE 6, 16: PRINT "Y": LOCATE 6, 18: PRINT "N"
+     DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ = "Y" OR a$ = "N": IF a$ = "Y" THEN plrnum = 1: getguy 1, 14: updateguy
+   END IF
+   IF q2 = 1 THEN
+     LOCATE 7, 12: COLOR 3: PRINT "Save "; : COLOR 10: PRINT custom$(2); : COLOR 3: PRINT "?": LOCATE 8, 15: COLOR 3: PRINT "(Y/N)": COLOR 10: LOCATE 8, 16: PRINT "Y": LOCATE 8, 18: PRINT "N"
+     DO: a$ = UCASE$(INKEY$): LOOP UNTIL a$ = "Y" OR a$ = "N": IF a$ = "Y" THEN plrnum = 2: getguy 2, 14: updateguy
+   END IF
+   GOTO restartmainmenu:
+  ELSEIF a$ = "L" THEN
+  LOCATE 6, 10: COLOR 8: PRINT "WINS:"
+  LOCATE 7, 10: COLOR 8: PRINT "LOSS:"
+  LOCATE 8, 10: COLOR 8: PRINT "WIN PERCENTAGE:"
+  LOCATE 5, 10: COLOR 3: PRINT "FIGHTER NAME:"; : COLOR 10: INPUT "", nm$
+  OPEN "C:\" + TheDirectory$ + nm$ + ".max" FOR RANDOM AS #1: IF LOF(1) THEN CLOSE #1 ELSE CLOSE #1: GOTO restartmainmenu:
+  OPEN "C:\" + TheDirectory$ + nm$ + ".max" FOR INPUT AS #1
+  INPUT #1, name$(plrnum), cuswins(plrnum), matches(plrnum): INPUT #1, maxlife(plrnum), recover(plrnum)
+  INPUT #1, speed(plrnum), jumpheight(plrnum): INPUT #1, punchpow(plrnum), kickpow(plrnum)
+  INPUT #1, size(plrnum), pictype(plrnum): INPUT #1, robes(plrnum), dress(plrnum), bigarm(plrnum), cape(plrnum), batwings(plrnum), loincloth(plrnum), biglegs(plrnum)
+  INPUT #1, headgear$(plrnum): INPUT #1, headc(plrnum), bodyc(plrnum)
+  INPUT #1, legc(plrnum), bootc(plrnum): INPUT #1, fistc1(plrnum), fistc2(plrnum)
+  INPUT #1, fireballc(plrnum), fireballsz(plrnum): INPUT #1, fireballsp(plrnum), fireballr(plrnum), fireballfx%(plrnum)
+  INPUT #1, invisible(plrnum), piledriverd(plrnum): INPUT #1, powerbomb(plrnum), summersault(plrnum)
+  INPUT #1, ddtd(plrnum), suplex(plrnum), bodyslam(plrnum): INPUT #1, fired(plrnum), firel(plrnum)
+  CLOSE #1: pixy(2, 1) = 90: PCOPY 4, 3: junk: drawcrap
+  LOCATE 5, 10: COLOR 3: PRINT "FIGHTER NAME:"; : COLOR 10: PRINT name$(plrnum)
+  LOCATE 6, 10: COLOR 3: PRINT "WINS:"; : COLOR 10: PRINT LTRIM$(RTRIM$(STR$(cuswins(plrnum))))
+  LOCATE 7, 10: COLOR 3: PRINT "LOSS:"; : COLOR 10: PRINT LTRIM$(RTRIM$(STR$((matches(plrnum) - cuswins(plrnum)))))
+  LOCATE 8, 10: COLOR 3: PRINT "WIN PERCENTAGE:"; : COLOR 10: ' PRINT LTRIM$(RTRIM$(STR$(CINT(cuswins(plrnum) * 100 / matches(plrnum))))) + "%"
+  LOCATE 9, 10: COLOR 3: PRINT "LOAD TO CHARACTER 1 OR 2?"
+  LOCATE 9, 28: COLOR 10: PRINT "1": LOCATE 9, 33: COLOR 10: PRINT "2"
+  DO: a$ = INKEY$: LOOP UNTIL a$ = "1" OR a$ = "2": custom$(VAL(a$)) = nm$
+  LOCATE 11, 10: COLOR 10: PRINT "Press a key": DO: LOOP UNTIL INKEY$ <> "": GOTO restartmainmenu
+  END IF
+END IF
+
+
+
+
+END SUB
+
+SUB junk
+IF name$(plrnum) = "JESUS" THEN CIRCLE (pixx(plrnum, 1), pixy(plrnum, 1) - 15), 10, 14, , , .175
+IF movenum(plrnum) = 6 THEN EXIT SUB
+       
+       
+        'bat wings
+IF batwings(plrnum) >= 0 THEN
+qx = pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) - 1
+qy = pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) - 1
+IF dir$(plrnum) = "RIGHT" THEN uh = -10:  ELSE uh = 10
+LINE (qx, qy)-(pixx(plrnum, 7) + uh, qy - (pixy(plrnum, 7) - qy)), batwings(plrnum)
+LINE (pixx(plrnum, 7) + uh, qy - (pixy(plrnum, 7) - qy))-(pixx(plrnum, 7) + (uh / 2), pixy(plrnum, 2)), batwings(plrnum)
+LINE (pixx(plrnum, 7) + uh, qy - (pixy(plrnum, 7) - qy))-(pixx(plrnum, 7) + (uh * 2), pixy(plrnum, 2) - uh), batwings(plrnum)
+LINE (qx, qy)-(pixx(plrnum, 9) + uh, qy - (pixy(plrnum, 9) - qy)), batwings(plrnum)
+LINE (pixx(plrnum, 9) + uh, qy - (pixy(plrnum, 9) - qy))-(pixx(plrnum, 9) + (uh / 2), pixy(plrnum, 2)), batwings(plrnum)
+LINE (pixx(plrnum, 9) + uh, qy - (pixy(plrnum, 9) - qy))-(pixx(plrnum, 9) + (uh * 2), pixy(plrnum, 2) - uh), batwings(plrnum)
+END IF
+        'cape
+IF cape(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) - (spin * size(plrnum)), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) - size(plrnum))-(pixx(plrnum, 2) - size(plrnum), pixy(plrnum, 5)), cape(plrnum)
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) + (spin * size(plrnum)), pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + size(plrnum))-(pixx(plrnum, 2) + size(plrnum), pixy(plrnum, 3)), cape(plrnum)
+LINE (pixx(plrnum, 2) - size(plrnum), pixy(plrnum, 5))-(pixx(plrnum, 2) + size(plrnum), pixy(plrnum, 3)), cape(plrnum)
+END IF
+        'loin cloth
+IF loincloth(plrnum) >= 0 THEN
+  IF pictype(plrnum) = 1 OR pictype(plrnum) = 2 THEN
+    LINE (pixx(plrnum, 2), pixy(plrnum, 2) - 2)-((pixx(plrnum, 3) + pixx(plrnum, 2)) / 2, (pixy(plrnum, 3) + pixy(plrnum, 2)) / 2), loincloth(plrnum)
+    LINE (pixx(plrnum, 2), pixy(plrnum, 2) - 2)-((pixx(plrnum, 5) + pixx(plrnum, 2)) / 2, (pixy(plrnum, 5) + pixy(plrnum, 2)) / 2), loincloth(plrnum)
+    LINE ((pixx(plrnum, 3) + pixx(plrnum, 2)) / 2, (pixy(plrnum, 3) + pixy(plrnum, 2)) / 2)-((pixx(plrnum, 5) + pixx(plrnum, 2)) / 2, (pixy(plrnum, 5) + pixy(plrnum, 2)) / 2), loincloth(plrnum)
+  END IF
+  IF pictype(plrnum) = 3 THEN CIRCLE (pixx(plrnum, 2), pixy(plrnum, 2)), 5 + (size(plrnum) / 3) * qqq, loincloth(plrnum), , , .55
+END IF
+
+        'dress
+IF dress(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 4), pixy(plrnum, 4))-(pixx(plrnum, 6), pixy(plrnum, 6)), dress(plrnum)
+LINE (pixx(plrnum, 3), pixy(plrnum, 3))-(pixx(plrnum, 5), pixy(plrnum, 5)), dress(plrnum)
+LINE (pixx(plrnum, 2), pixy(plrnum, 2))-(pixx(plrnum, 6), pixy(plrnum, 6)), dress(plrnum)
+LINE (pixx(plrnum, 2), pixy(plrnum, 2))-(pixx(plrnum, 4), pixy(plrnum, 4)), dress(plrnum)
+END IF
+        'robes
+IF robes(plrnum) >= 0 THEN
+LINE (pixx(plrnum, 8), pixy(plrnum, 8))-(pixx(plrnum, 6), pixy(plrnum, 6)), robes(plrnum)
+LINE (pixx(plrnum, 10), pixy(plrnum, 10))-(pixx(plrnum, 4), pixy(plrnum, 4)), robes(plrnum)
+LINE (pixx(plrnum, 7), pixy(plrnum, 7))-(pixx(plrnum, 6), pixy(plrnum, 6)), robes(plrnum)
+LINE (pixx(plrnum, 9), pixy(plrnum, 9))-(pixx(plrnum, 4), pixy(plrnum, 4)), robes(plrnum)
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) - 1, pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) - 1)-(pixx(plrnum, 5), pixy(plrnum, 5)), robes(plrnum)
+LINE (pixx(plrnum, 1) + ((pixx(plrnum, 2) - pixx(plrnum, 1)) / 3) + 1, pixy(plrnum, 1) + ((pixy(plrnum, 2) - pixy(plrnum, 1)) / 3) + 1)-(pixx(plrnum, 3), pixy(plrnum, 3)), robes(plrnum)
+END IF
+        'big arms
+IF bigarm(plrnum) = 1 THEN
+CIRCLE ((pixx(plrnum, 7) + pixx(plrnum, 8)) / 2, (pixy(plrnum, 7) + pixy(plrnum, 8)) / 2), 10, ABS(fistc2(plrnum)), , , .75: CIRCLE (pixx(plrnum, 8), pixy(plrnum, 8)), 3 * qqq, ABS(fistc1(plrnum))
+ELSEIF bigarm(plrnum) = 2 THEN
+CIRCLE ((pixx(plrnum, 7) + pixx(plrnum, 8)) / 2, (pixy(plrnum, 7) + pixy(plrnum, 8)) / 2), 10, ABS(fistc2(plrnum)), , , .75: CIRCLE (pixx(plrnum, 8), pixy(plrnum, 8)), 3 * qqq, ABS(fistc1(plrnum))
+CIRCLE ((pixx(plrnum, 9) + pixx(plrnum, 10)) / 2, (pixy(plrnum, 9) + pixy(plrnum, 10)) / 2), 10, ABS(fistc2(plrnum)), , , .75: CIRCLE (pixx(plrnum, 10), pixy(plrnum, 10)), 3 * qqq, ABS(fistc1(plrnum))
+END IF
+IF cheeeet(2) = 5 THEN EXIT SUB
+
+        'HEAD FEATURES
+'1) eyes
+'2) eyeslit
+'3) nose
+'4) bandana
+'5) horns
+t = 90
+IF movenum(plrnum) = 9 THEN SWAP t, pixy(oplrnum, 1)
+'IF pixx(plrnum, 1) <= pixx(oplrnum, 1) AND doingmove(plrnum) = 0 THEN spin(plrnum) = 1
+'IF pixx(plrnum, 1) > pixx(oplrnum, 1) AND doingmove(plrnum) = 0 THEN spin(plrnum) = -1
+
+
+'eyes
+IF VAL(MID$(headgear$(plrnum), 1, 2)) > 0 THEN
+  q = pixy(plrnum, 1) - (pixy(plrnum, 1) - (pixy(plrnum, 1) + pixy(oplrnum, 1)) / 2) / 15: qq = ABS(pixx(plrnum, 1) - pixx(plrnum, 2)): IF deathfall(oplrnum) = 5 THEN q = pixy(plrnum, 1) + 4
+  IF qq > ABS(pixy(plrnum, 1) - pixy(plrnum, 2)) AND POS$(plrnum) <> "DUCKING" THEN
+  CIRCLE (pixx(plrnum, 1) - ((spin(plrnum)) / 1.25), q + 4), 3, VAL(MID$(headgear$(plrnum), 1, 2)): CIRCLE (pixx(plrnum, 1) - ((8 * spin(plrnum)) / 1.25), q + 2), 2, VAL(MID$(headgear$(plrnum), 1, 2))
+  END IF
+  IF qq <= ABS(pixy(plrnum, 1) - pixy(plrnum, 2)) OR POS$(plrnum) = "DUCKING" THEN CIRCLE (pixx(plrnum, 1) + (spin(plrnum)), q), 3, VAL(MID$(headgear$(plrnum), 1, 2)): CIRCLE (pixx(plrnum, 1) + (8 * spin(plrnum)), q), 2, VAL(MID$(headgear$(plrnum),  _
+1, 2))
+END IF
+'eyeslit
+IF VAL(MID$(headgear$(plrnum), 3, 2)) > 0 THEN
+  q = pixy(plrnum, 1) - (pixy(plrnum, 1) - (pixy(plrnum, 1) + pixy(oplrnum, 1)) / 2) / 15: qq = ABS(pixx(plrnum, 1) - pixx(plrnum, 2)): IF deathfall(oplrnum) = 5 THEN q = pixy(plrnum, 1) + 4
+  IF qq > ABS(pixy(plrnum, 1) - pixy(plrnum, 2)) AND POS$(plrnum) <> "DUCKING" THEN LINE (pixx(plrnum, 1) - ((-spin(plrnum)) / 1.25), q + 4)-(pixx(plrnum, 1) - ((9 * spin(plrnum)) / 1.25), q + 2), VAL(MID$(headgear$(plrnum), 3, 2))
+  IF qq <= ABS(pixy(plrnum, 1) - pixy(plrnum, 2)) OR POS$(plrnum) = "DUCKING" THEN LINE (pixx(plrnum, 1) + (-spin(plrnum)), q)-(pixx(plrnum, 1) + (9 * spin(plrnum)), q), VAL(MID$(headgear$(plrnum), 3, 2))
+END IF
+'nose
+IF VAL(MID$(headgear$(plrnum), 5, 2)) > 0 THEN
+  IF (ABS(pixx(plrnum, 1) - pixx(plrnum, 2)) > ABS(pixy(plrnum, 1) - pixy(plrnum, 2))) AND POS$(plrnum) <> "DUCKING" THEN
+  q = pixy(plrnum, 1) - (pixy(plrnum, 1) - (pixy(plrnum, 1) + pixy(oplrnum, 1)) / 2) / 15: IF deathfall(oplrnum) = 5 THEN q = pixy(plrnum, 1) + 4
+  LINE (pixx(plrnum, 1) - ((4 * spin(plrnum))), q + 3)-(pixx(plrnum, 1) - ((2 * spin(plrnum))), q - 2), VAL(MID$(headgear$(plrnum), 5, 2))
+  ELSEIF (ABS(pixx(plrnum, 1) - pixx(plrnum, 2)) <= ABS(pixy(plrnum, 1) - pixy(plrnum, 2))) OR POS$(plrnum) = "DUCKING" THEN
+  q = (pixy(plrnum, 1) - (pixy(plrnum, 1) - (pixy(plrnum, 1) + pixy(oplrnum, 1)) / 2) / 15) + 5: IF deathfall(oplrnum) = 5 THEN q = pixy(plrnum, 1) + 4
+  LINE (pixx(plrnum, 1) + (5 * spin(plrnum)), q - 5)-(pixx(plrnum, 1) + (5 * spin(plrnum)), q), VAL(MID$(headgear$(plrnum), 5, 2))
+  END IF
+END IF
+        'head band
+IF VAL(MID$(headgear$(plrnum), 7, 2)) > 0 THEN
+  q = pixy(plrnum, 1) - (pixy(plrnum, 1) - (pixy(plrnum, 1) + pixy(oplrnum, 1)) / 2) / 15: qq = ABS(pixx(plrnum, 1) - pixx(plrnum, 2)): IF deathfall(oplrnum) = 5 THEN q = pixy(plrnum, 1) + 4
+  IF qq > ABS(pixy(plrnum, 1) - pixy(plrnum, 2)) AND POS$(plrnum) <> "DUCKING" THEN
+LINE (pixx(plrnum, 1) + ((6 * spin(plrnum)) / 1.25), q + 10)-(pixx(plrnum, 1) - ((13 * spin(plrnum)) / 1.25), q + 2), VAL(MID$(headgear$(plrnum), 7, 2)): CIRCLE (pixx(plrnum, 1) + ((6 * spin(plrnum)) / 1.25), q + 10), 2, VAL(MID$(headgear$(plrnum),  _
+7, 2))
+  LINE (pixx(plrnum, 1) + ((6 * spin(plrnum)) / 1.25), q + 10)-STEP(spin(plrnum) * 11, 2), VAL(MID$(headgear$(plrnum), 7, 2))
+  ELSEIF qq <= ABS(pixy(plrnum, 1) - pixy(plrnum, 2)) OR POS$(plrnum) = "DUCKING" THEN
+  LINE (pixx(plrnum, 1) + (-9 * spin(plrnum)), q - 4)-(pixx(plrnum, 1) + (9 * spin(plrnum)), q - 4), VAL(MID$(headgear$(plrnum), 7, 2)): CIRCLE (pixx(plrnum, 1) + (-9 * spin(plrnum)), q - 4), 2, VAL(MID$(headgear$(plrnum), 7, 2))
+  LINE (pixx(plrnum, 1) + (-9 * spin(plrnum)), q - 4)-STEP(0, 16), VAL(MID$(headgear$(plrnum), 7, 2))
+  END IF
+END IF
+        'HORNS
+IF VAL(MID$(headgear$(plrnum), 9, 2)) > 0 THEN
+  q = pixy(plrnum, 1) - (pixy(plrnum, 1) - (pixy(plrnum, 1) + pixy(oplrnum, 1)) / 2) / 15: qq = ABS(pixx(plrnum, 1) - pixx(plrnum, 2)): IF deathfall(oplrnum) = 5 THEN q = pixy(plrnum, 1) + 4
+  IF qq > ABS(pixy(plrnum, 1) - pixy(plrnum, 2)) AND POS$(plrnum) <> "DUCKING" THEN
+    LINE (pixx(plrnum, 1) - ((20 * spin(plrnum)) / 1.25), q + 8)-STEP(6, -3), VAL(MID$(headgear$(plrnum), 9, 2)): LINE (pixx(plrnum, 1) - ((20 * spin(plrnum)) / 1.25), q + 8)-STEP(8, -1), VAL(MID$(headgear$(plrnum), 9, 2))
+    LINE (pixx(plrnum, 1) - ((10 * spin(plrnum)) / 1.25), q + 13)-STEP(5, -5), VAL(MID$(headgear$(plrnum), 9, 2)): LINE (pixx(plrnum, 1) - ((10 * spin(plrnum)) / 1.25), q + 13)-STEP(7, -4), VAL(MID$(headgear$(plrnum), 9, 2))
+  ELSEIF qq <= ABS(pixy(plrnum, 1) - pixy(plrnum, 2)) OR POS$(plrnum) = "DUCKING" THEN
+    LINE (pixx(plrnum, 1) + spin(plrnum) * (1 - (pixy(plrnum, 1) - q)), q - 15)-STEP(1 * spin(plrnum), 10), VAL(MID$(headgear$(plrnum), 9, 2))
+    LINE (pixx(plrnum, 1) + spin(plrnum) * (1 - (pixy(plrnum, 1) - q)), q - 15)-STEP(-1 * spin(plrnum), 9), VAL(MID$(headgear$(plrnum), 9, 2))
+    LINE (pixx(plrnum, 1) + spin(plrnum) * (12 - (pixy(plrnum, 1) - q)), q - 15)-STEP(-4 * spin(plrnum), 9), VAL(MID$(headgear$(plrnum), 9, 2))
+    LINE (pixx(plrnum, 1) + spin(plrnum) * (12 - (pixy(plrnum, 1) - q)), q - 15)-STEP(-6 * spin(plrnum), 10), VAL(MID$(headgear$(plrnum), 9, 2))
+  END IF
+END IF: IF dir$(plrnum) = "RIGHT" THEN spin(plrnum) = 1:  ELSE spin(plrnum) = -1
+
+IF movenum(plrnum) = 9 THEN SWAP t, pixy(oplrnum, 1)
+
+
+'LINE (pixx(plrnum, 9) + ((spin * size(plrnum)) / 2), pixy(plrnum, 9) + (size(plrnum) / 2))-(pixx(plrnum, 10), pixy(plrnum, 10)), fistc1(plrnum)
+
+'
+
+
+'CIRCLE ((pixx(plrnum, 9) + pixx(plrnum, 10)) / 2, (pixy(plrnum, 9) + pixy(plrnum, 10)) / 2), 10, fistc2(plrnum), , , .75
+''CIRCLE (pixx(plrnum, 10), pixy(plrnum, 10)), 3 * qqq, fistc1(plrnum)
+''CIRCLE (pixx(plrnum, 8), pixy(plrnum, 8)), 3 * qqq, fistc1(plrnum)
+'END IF
+
+       
+
+END SUB
+
+SUB runmove
+powmoveframe(plrnum) = powmoveframe(plrnum) + 1
+IF stun(oplrnum) <= 0 THEN stun(oplrnum) = maxlife(oplrnum) / easystun: doingmove(oplrnum) = 0
+IF movenum(playernum) >= 0 THEN kicking(plrnum) = 0: punching(plrnum) = 0
+IF movenum(plrnum) = 1 THEN
+        'F I R E B A L L
+  IF powmoveframe(plrnum) = 1 THEN IF dir$(plrnum) = "RIGHT" THEN dir$(plrnum) = "LEFT": ggosub "STAND", plrnum:  ELSE dir$(plrnum) = "RIGHT": ggosub "STAND", plrnum
+  IF powmoveframe(plrnum) = 4 THEN IF dir$(plrnum) = "RIGHT" THEN dir$(plrnum) = "LEFT": ggosub "SHOOT", plrnum:  ELSE dir$(plrnum) = "RIGHT": ggosub "SHOOT", plrnum
+  IF powmoveframe(plrnum) >= 5 AND powmoveframe(plrnum) <= 8 THEN
+  FOR r = 1 TO 10: LINE (pixx(plrnum, 8), 110)-STEP(INT(RND * 40) - 20 + spin(plrnum) * 5, INT(RND * 30) - 15), fireballc(plrnum): NEXT r: movedir(plrnum) = fireballsp(plrnum) * spin(plrnum): powmovex(plrnum) = pixx(plrnum, 8)
+  END IF
+  IF powmoveframe(plrnum) = 5 THEN fx fireballfx%(plrnum): powmovex(plrnum) = pixx(plrnum, 8)
+  IF powmoveframe(plrnum) = 10 THEN doingmove(plrnum) = 0: ggosub "RELAX", plrnum
+  IF powmoveframe(plrnum) >= 5 AND movedir(plrnum) <> 0 THEN
+    IF fireballr(plrnum) < 100 THEN CIRCLE (powmovex(plrnum), 110), fireballsz(plrnum), fireballc(plrnum), , , fireballr(plrnum)
+    IF fireballr(plrnum) = 100 THEN LINE (powmovex(plrnum), 108)-STEP(-fireballsz(plrnum), 0), fireballc(plrnum): LINE (powmovex(plrnum) - 5, 112)-STEP(-fireballsz(plrnum), 0), fireballc(plrnum)
+    powmovex(plrnum) = powmovex(plrnum) + movedir(plrnum): IF powmovex(plrnum) <= -30 OR powmovex(plrnum) >= 350 OR powmoveframe(plrnum) >= 40 THEN powmovex(plrnum) = 0: movedir(plrnum) = 0: movenum(plrnum) = 0: doingmove(plrnum) = 0: EXIT SUB
+  END IF
+  IF powmovex(plrnum) >= 8 AND powmovex(plrnum) >= pixx(oplrnum, 1) - 7 AND powmovex(plrnum) <= pixx(oplrnum, 1) + 7 AND POS$(oplrnum) <> "DUCKING" AND jumping(oplrnum) = 0 AND POS$(oplrnum) <> "DOWN" THEN
+    life(oplrnum) = life(oplrnum) - ((punchpow(plrnum) + kickpow(plrnum)) / 2): powmovex(plrnum) = 0: movedir(plrnum) = 0: stun(oplrnum) = stun(oplrnum) - ((punchpow(plrnum) + kickpow(plrnum)) / 2)
+    FOR r = 1 TO 10: LINE ((pixx(oplrnum, 8) + pixx(oplrnum, 1)) / 2, 110)-STEP(INT(RND * 40) - 15, INT(RND * 30) - 10), fireballc(plrnum): NEXT r
+    ggosub "HURT1", oplrnum: moving(oplrnum) = 5: moveframe(oplrnum) = 0: movenum(plrnum) = 0: doingmove(plrnum) = 0: pkey$(plrnum, 1) = ""
+  END IF
+ELSEIF movenum(plrnum) = 2 THEN
+        ' P I L E     D R I V E R
+  IF powmoveframe(plrnum) = 1 THEN ggosub "SHOOT", plrnum
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) > 15 THEN ggosub "STAND", plrnum: doingmove(plrnum) = 0: movenum(plrnum) = 0: gettingmoved(oplrnum) = 0
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) <= 15 THEN
+    IF dir$(plrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) + 10: dir$(oplrnum) = "LEFT" ELSE x(oplrnum) = x(plrnum) - 10: dir$(oplrnum) = "RIGHT"
+    ggosub "RELAX", plrnum: ggosub "DUCK", oplrnum: gettingmoved(oplrnum) = 5: ggosub "stand", plrnum: ggosub "duck", oplrnum: fx 20
+  ELSEIF powmoveframe(plrnum) = 12 THEN
+    IF dir$(plrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) + 55: dir$(oplrnum) = "LEFT" ELSE x(oplrnum) = x(plrnum) - 55: dir$(oplrnum) = "RIGHT"
+    ggosub "PILEDRIVE", plrnum: ggosub "UPSIDEDOWN", oplrnum: movey(plrnum) = -piledriverd(plrnum) - (jumpheight(plrnum) / 2): movey(oplrnum) = -piledriverd(plrnum) - (jumpheight(plrnum) / 2): jumpdir(plrnum) = 0: jumpdir(oplrnum) = 0: POS$(oplrnum) _
+ = "UPSIDEDOWN"
+  END IF
+  IF powmoveframe(plrnum) >= 13 THEN ggosub "PILEDRIVE", plrnum: ggosub "UPSIDEDOWN", oplrnum
+  IF y(plrnum) >= 120 AND powmoveframe(plrnum) > 14 THEN
+    stun(oplrnum) = stun(oplrnum) - (piledriverd(plrnum) / 1)
+    fx 24: life(oplrnum) = life(oplrnum) - piledriverd(plrnum): gettingmoved(oplrnum) = 0: doingmove(plrnum) = 0: movenum(plrnum) = 0: y(plrnum) = 80: movey(oplrnum) = -10
+    moveframe(plrnum) = 0: ggosub "DUCK", plrnum: POS$(plrnum) = "DUCKING": movey(plrnum) = 0: jumpdir(pleyernum) = 0: moving(plrnum) = 5: moveframe(plrnum) = 0: y(oplrnum) = 80
+  END IF
+ELSEIF movenum(plrnum) = 3 THEN
+        ' P O W E R   B O M B
+  IF powmoveframe(plrnum) = 1 THEN ggosub "SHOOT", plrnum
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) <= 15 THEN ggosub "RELAX", plrnum: ggosub "DUCK", oplrnum: gettingmoved(oplrnum) = 5: fx 20
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) > 15 THEN ggosub "STAND", plrnum: doingmove(plrnum) = 0: movenum(plrnum) = 0: gettingmoved(oplrnum) = 0
+  IF powmoveframe(plrnum) = 14 THEN y(oplrnum) = 100: ggosub "SHOOT", plrnum: ggosub "JUMP", oplrnum
+  IF powmoveframe(plrnum) = 18 THEN ggosub "STAND", plrnum
+  IF powmoveframe(plrnum) = 20 THEN
+    IF dir$(plrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) + 60: dir$(oplrnum) = "LEFT" ELSE x(oplrnum) = x(plrnum) - 60: dir$(oplrnum) = "RIGHT"
+    y(oplrnum) = 40: ggosub "SHOOT", plrnum: ggosub "UPSIDEDOWN", oplrnum
+  ELSEIF powmoveframe(plrnum) = 23 THEN
+    IF dir$(oplrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) - 25:  ELSE x(oplrnum) = x(plrnum) + 25
+    y(oplrnum) = 60: ggosub "SLAM", plrnum: ggosub "LIMP AIR", oplrnum
+  ELSEIF powmoveframe(plrnum) = 35 THEN
+    IF dir$(oplrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) - 65:  ELSE x(oplrnum) = x(plrnum) + 65
+    y(oplrnum) = 80: ggosub "DUCK", plrnum: ggosub "UPSIDEDOWN", oplrnum: POS$(oplrnum) = "UPSIDEDOWN"
+  ELSEIF powmoveframe(plrnum) = 37 THEN
+    ggosub "DUCK", plrnum: ggosub "DOWN", oplrnum: life(oplrnum) = life(oplrnum) - powerbomb(plrnum): gettingmoved(oplrnum) = 0: doingmove(plrnum) = 0: moving(oplrnum) = 5
+    moveframe(oplrnum) = -25: movenum(plrnum) = 0: POS$(oplrnum) = "DOWN": moveframe(plrnum) = 0: moving(plrnum) = 5: IF deathfall(oplrnum) = 0 THEN fx 24
+    stun(oplrnum) = stun(oplrnum) - (powerbomb(plrnum) / 2)
+  END IF
+ELSEIF movenum(plrnum) = 4 THEN
+        ' C O A R K S C R E W    S P L A S H
+  IF powmoveframe(plrnum) = 1 THEN movey(plrnum) = -summersault(plrnum) * 1.5
+  IF dir$(plrnum) = "RIGHT" THEN jumpdir(plrnum) = 4
+  IF dir$(plrnum) = "LEFT" THEN jumpdir(plrnum) = -4
+  IF CINT(powmoveframe(plrnum) / 3) * 3 = powmoveframe(plrnum) THEN ggosub "JATAK", plrnum
+  IF CINT(powmoveframe(plrnum) / 6) * 6 = powmoveframe(plrnum) THEN ggosub "duck", plrnum
+  IF CINT(powmoveframe(plrnum) / 9) * 9 = powmoveframe(plrnum) THEN ggosub "upsidedown", plrnum
+  IF CINT(powmoveframe(plrnum) / 12) * 12 = powmoveframe(plrnum) THEN ggosub "DUCK", plrnum
+  IF ABS(pixx(plrnum, 2) - pixx(oplrnum, 2)) <= 30 AND y(plrnum) >= 15 AND y(plrnum) > 80 AND POS$(oplrnum) <> "DOWN" AND movey(plrnum) > 0 THEN
+    life(oplrnum) = life(oplrnum) - (summersault(plrnum) / 2): POS$(oplrnum) = "DOWN": ggosub "DOWN", oplrnum: moving(oplrnum) = 5: moveframe(oplrnum) = -20: fx 22: powmoveframe(plrnum) = 600
+    stun(oplrnum) = stun(oplrnum) - (summersault(plrnum) / 4)
+  END IF
+  IF y(plrnum) >= 80 AND powmoveframe(plrnum) > 1 THEN movey(plrnum) = 0: y(plrnum) = 80: doingmove(plrnum) = 0: POS$(plrnum) = "DOWN": ggosub "down", plrnum: movenum(plrnum) = 0: moving(plrnum) = 5: moveframe(plrnum) = -10
+  IF powmoveframe(plrnum) < 600 AND y(plrnum) >= 80 THEN fx 20
+ELSEIF movenum(plrnum) = 5 THEN
+         ' D D T
+  IF powmoveframe(plrnum) = 1 THEN ggosub "SHOOT", plrnum
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) <= 15 THEN y(oplrnum) = 90: ggosub "SHOOT", plrnum: ggosub "HURT2", oplrnum: gettingmoved(oplrnum) = 5
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) > 15 THEN ggosub "STAND", plrnum: doingmove(plrnum) = 0: movenum(plrnum) = 0: gettingmoved(oplrnum) = 0
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) > 15 THEN ggosub "STAND", plrnum: doingmove(plrnum) = 0: movenum(plrnum) = 0: gettingmoved(oplrnum) = 0
+  IF powmoveframe(plrnum) = 12 THEN
+    IF dir$(plrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) + 10: dir$(oplrnum) = "LEFT" ELSE x(oplrnum) = x(plrnum) - 10: dir$(oplrnum) = "RIGHT"
+    ggosub "stand", plrnum: ggosub "duck", oplrnum
+  END IF
+  IF powmoveframe(plrnum) = 15 THEN ggosub "RELAX", plrnum: ggosub "hurt2", oplrnum
+  IF powmoveframe(plrnum) = 25 THEN
+  IF dir$(oplrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum): dir$(oplrnum) = "LEFT":   ELSE dir$(oplrnum) = "RIGHT": x(oplrnum) = x(plrnum)
+  ggosub "DOWN", plrnum: ggosub "UPSIDEDOWN", oplrnum
+  END IF: IF powmoveframe(plrnum) = 27 THEN fx 23: life(oplrnum) = life(oplrnum) - ddtd(plrnum): stun(oplrnum) = stun(oplrnum) - ddtd(plrnum)
+  IF powmoveframe(plrnum) = 30 THEN IF dir$(oplrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) + 10: ggosub "DOWN", oplrnum ELSE x(oplrnum) = x(plrnum) - 10: ggosub "DOWN", oplrnum
+  IF powmoveframe(plrnum) = 35 THEN
+    IF dir$(oplrnum) = "RIGHT" THEN dir$(oplrnum) = "LEFT":   ELSE dir$(oplrnum) = "RIGHT"
+    ggosub "DUCK", plrnum: y(oplrnum) = 80: moving(oplrnum) = 5: moveframe(oplrnum) = -20: gettingmoved(oplrnum) = 0: doingmove(plrnum) = 0
+    movenum(plrnum) = 0: POS$(oplrnum) = "DOWN"
+  END IF
+ELSEIF movenum(plrnum) = 6 THEN
+        ' I N V I S I B L E
+  IF powmoveframe(plrnum) = 1 THEN FOR b% = 1 TO 10: destx(plrnum, b%) = INT(RND * 320) + 1: desty(plrnum, b%) = INT(RND * 200) + 1: NEXT b%
+  IF powmoveframe(plrnum) = 3 THEN pictype(plrnum) = pictype(plrnum) + 5: doingmove(plrnum) = 0
+  IF powmoveframe(plrnum) = invisible(plrnum) THEN pictype(plrnum) = pictype(plrnum) - 5: movenum(plrnum) = 0: moving(plrnum) = 5: moveframe(plrnum) = 100
+ELSEIF movenum(plrnum) = 7 THEN
+        'S U P L E X
+  IF powmoveframe(plrnum) = 1 THEN ggosub "SHOOT", plrnum
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) > 15 THEN ggosub "STAND", plrnum: doingmove(plrnum) = 0: movenum(plrnum) = 0: gettingmoved(oplrnum) = 0
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) <= 15 THEN
+    IF dir$(plrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) + 30: dir$(oplrnum) = "LEFT" ELSE x(oplrnum) = x(plrnum) - 30: dir$(oplrnum) = "RIGHT"
+    ggosub "RELAX", plrnum: ggosub "DUCK", oplrnum: gettingmoved(oplrnum) = 5: ggosub "stand", plrnum: ggosub "duck", oplrnum: fx 20
+  END IF
+  IF powmoveframe(plrnum) = 14 THEN ggosub "SLAM", plrnum: y(oplrnum) = 10: ggosub "UPSIDEDOWN", oplrnum
+  IF powmoveframe(plrnum) = 30 THEN
+    y(oplrnum) = 60: movey(oplrnum) = 1: movey(plrnum) = -5: gettingmoved(oplrnum) = -0: doingmove(plrnum) = 0: ggosub "WIN", plrnum: ggosub "UPSIDEDOWN", oplrnum
+    IF dir$(plrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) - 80: dir$(oplrnum) = "LEFT" ELSE x(oplrnum) = x(plrnum) + 80: dir$(oplrnum) = "RIGHT"
+  END IF
+  IF powmoveframe(plrnum) = 36 THEN life(oplrnum) = life(oplrnum) - suplex(plrnum): movenum(plrnum) = 0: : IF deathfall(oplrnum) = 0 THEN fx 25
+ELSEIF movenum(plrnum) = 8 THEN
+        'B O D Y    S L A M
+  IF powmoveframe(plrnum) = 1 THEN ggosub "SHOOT", plrnum
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) > 15 THEN ggosub "STAND", plrnum: doingmove(plrnum) = 0: movenum(plrnum) = 0: gettingmoved(oplrnum) = 0
+  IF powmoveframe(plrnum) = 7 AND ABS(pixx(plrnum, 8) - pixx(oplrnum, 1)) <= 15 THEN
+    IF dir$(plrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) + 50: dir$(oplrnum) = "LEFT" ELSE x(oplrnum) = x(plrnum) - 50: dir$(oplrnum) = "RIGHT"
+    ggosub "SHOOT", plrnum: ggosub "HURT2", oplrnum: gettingmoved(oplrnum) = 5: fx 20
+  ELSEIF powmoveframe(plrnum) = 14 THEN
+    IF dir$(oplrnum) = "RIGHT" THEN dir$(oplrnum) = "LEFT": x(oplrnum) = x(plrnum) - 0 ELSE dir$(oplrnum) = "RIGHT": x(oplrnum) = x(plrnum) + 0
+    y(oplrnum) = y(plrnum) - 90: ggosub "WIN", plrnum: ggosub "DOWN", oplrnum
+  ELSEIF powmoveframe(plrnum) = 30 THEN
+   IF dir$(oplrnum) = "RIGHT" THEN x(oplrnum) = x(plrnum) + 80: dir$(oplrnum) = "LEFT" ELSE x(oplrnum) = x(plrnum) - 80: dir$(oplrnum) = "RIGHT"
+   ggosub "duck", plrnum: gettingmoved(oplrnum) = 0: y(oplrnum) = 50: movey(oplrnum) = 10
+  END IF
+  IF powmoveframe(plrnum) = 33 THEN doingmove(plrnum) = 0: movenum(plrnum) = 0:  life(oplrnum) = life(oplrnum) - bodyslam(plrnum): IF deathfall(oplrnum) = 0 THEN fx 24
+ELSEIF movenum(plrnum) = 9 THEN
+        'F I R E    B R E A T H
+  a = CINT((fired(plrnum) - FIX(fired(plrnum))) * 10): b = CINT((firel(plrnum) - FIX(firel(plrnum))) * 10): IF a <= 0 THEN a = 1
+  IF powmoveframe(plrnum) = 1 THEN ggosub "WIN", plrnum
+  IF powmoveframe(plrnum) = 10 THEN ggosub "HURT2", plrnum: IF b = 3 THEN ggosub "SHOOT", plrnum
+  IF powmoveframe(plrnum) > 10 AND powmoveframe(plrnum) < (firel(plrnum) / 3) + 10 THEN
+    IF powmoveframe(plrnum) = 18 THEN ggosub "HURT1", plrnum: speed(plrnum) = speed(plrnum) + 70
+    r = pixx(plrnum, 1): IF b = 3 THEN r = pixx(plrnum, 8)
+    IF (pixx(oplrnum, 1) > r AND pixx(oplrnum, 1) < r + (spin(plrnum) * firel(plrnum))) OR (pixx(oplrnum, 1) < r AND pixx(oplrnum, 1) > r + (spin(plrnum) * firel(plrnum))) THEN
+    IF POS$(oplrnum) <> "DOWN" AND POS$(oplrnum) <> "DUCKING" AND y(plrnum) >= 30 AND POS$(oplrnum) <> "LIMP AIR" AND POS$(oplrnum) <> "JUMPING" THEN
+    life(oplrnum) = life(oplrnum) - fired(plrnum): movey(oplrnum) = -5: POS$(oplrnum) = "JUMPING": movex(oplrnum) = spin(oplrnum) * -(firel(plrnum) / 7): stun(oplrnum) = stun(oplrnum) - fired(plrnum):
+    END IF
+    END IF
+    fx 24: FOR num% = 1 TO 15: c = spin(plrnum) * (INT(RND * firel(plrnum)) + 1): cc = kolors(a, 1)
+    IF ABS(c) < firel(plrnum) / 1.25 THEN cc = kolors(a, 2)
+    IF ABS(c) < firel(plrnum) / 1.75 THEN cc = kolors(a, 3)
+    IF ABS(c) < firel(plrnum) / 2.5 THEN cc = kolors(a, 4)
+    IF b <= 1 THEN LINE (pixx(plrnum, 1) + (spin(plrnum) * 7), pixy(plrnum, 1) + 4)-STEP(c, INT(RND * 20) - 10), cc
+    IF b = 2 THEN CIRCLE (pixx(plrnum, 1) + (spin(plrnum) * 7) + c, pixy(plrnum, 1) + 4 + INT(RND * 20) - 10), ABS(c) / 10, cc
+    IF b = 3 THEN LINE (pixx(plrnum, 8) + (spin(plrnum) * 7) + c, pixy(plrnum, 8) + 5 + INT(RND * 20) - 10)-(pixx(plrnum, 1) + (spin(plrnum) * 7) + c, pixy(plrnum, 1) + 4 + INT(RND * 20) - 10), cc
+    IF b = 4 THEN LINE (pixx(plrnum, 1) + (spin(plrnum) * 7) + INT(RND * firel(plrnum)), pixy(plrnum, 1) + 4 + INT(RND * 20) - 10)-(pixx(plrnum, 1) + (spin(plrnum) * 7) + INT(RND * firel(plrnum)), pixy(plrnum, 1) + 4 + INT(RND * 20) - 10), cc
+    NEXT num%
+  ELSEIF powmoveframe(plrnum) >= (firel(plrnum) / 3) + 10 THEN
+  speed(plrnum) = speed(plrnum) - 70: doingmove(plrnum) = 0: movenum(plrnum) = 0
+  END IF
+
+END IF
+
+
+
+
+
+END SUB
+
+DEFINT A-Z
+SUB sbinit
+FOR q = 1 TO &HF5
+CALL WriTeReg(q, 0)
+NEXT q
+END SUB
+
+SUB SBPLAY1 (Freq%, Wave%, Feedback%, Modl%, Clen%)
+'Channel 1
+                                'Operator 1
+CALL WriTeReg(&H20, Modl%)      '&H51
+CALL WriTeReg(&H40, 10)         '49
+CALL WriTeReg(&H60, &H40)       '&HF0
+CALL WriTeReg(&H80, &H240)      '&H77
+CALL WriTeReg(&HA0, Freq%)      'Freq%
+                                'Operator 2
+CALL WriTeReg(&H23, 1)          '
+CALL WriTeReg(&H43, 0)          '49
+CALL WriTeReg(&H63, &HF0)       '
+CALL WriTeReg(&H83, Clen%)      'CLEN%
+CALL WriTeReg(&HB0, &H31)       '&H31
+                                                
+CALL WriTeReg(&HE0, Wave%)      '0 or 1
+CALL WriTeReg(&HC0, Feedback%)  '
+
+'
+
+
+
+END SUB
+
+DEFSNG A-Z
+SUB updateguy
+  getguy 1, 14
+  IF TheDirectory$ = "" THEN EXIT SUB
+  OPEN "C:\" + TheDirectory$ + custom$(plrnum) + ".max" FOR OUTPUT AS #1
+  WRITE #1, name$(plrnum), cuswins(plrnum), matches(plrnum)
+  WRITE #1, maxlife(plrnum), recover(plrnum)
+  WRITE #1, speed(plrnum), jumpheight(plrnum)
+  WRITE #1, punchpow(plrnum), kickpow(plrnum)
+  WRITE #1, size(plrnum), pictype(plrnum)
+  WRITE #1, robes(plrnum), dress(plrnum), bigarm(plrnum), cape(plrnum), batwings(plrnum), loincloth(plrnum), biglegs(plrnum)
+  WRITE #1, headgear$(plrnum)
+  WRITE #1, headc(plrnum), bodyc(plrnum)
+  WRITE #1, legc(plrnum), bootc(plrnum)
+  WRITE #1, fistc1(plrnum), fistc2(plrnum)
+  WRITE #1, fireballc(plrnum), fireballsz(plrnum)
+  WRITE #1, fireballsp(plrnum), fireballr(plrnum), fireballfx%(plrnum)
+  WRITE #1, invisible(plrnum), piledriverd(plrnum)
+  WRITE #1, powerbomb(plrnum), summersault(plrnum)
+  WRITE #1, ddtd(plrnum), suplex(plrnum), bodyslam(plrnum)
+  WRITE #1, fired(plrnum), firel(plrnum)
+  CLOSE #1
+END SUB
+
+SUB wipe (numwipe)
+PCOPY 1, 0
+SCREEN 7, , 0, 0
+IF numwipe = 1 THEN
+FOR num% = 1 TO 110
+CIRCLE (160, 100), num%, 0: CIRCLE (160, 100), 210 - num%, 0
+NEXT num%
+FOR num% = 1 TO 110
+CIRCLE (161, 100), num%, 0: CIRCLE (161, 100), 210 - num%, 0
+NEXT num%
+ELSEIF numwipe = 2 THEN
+FOR num% = 1 TO 320
+  LINE (num%, 0)-(320 - num%, 200), 0
+  LINE (0, 200 - num%)-(320, num%), 0
+   FOR r = 1 TO 50: NEXT r
+NEXT num%
+ELSEIF numwipe = 3 THEN
+FOR num% = 1 TO 20
+  FOR num2% = 0 TO 16
+    FOR num3% = 0 TO 10
+    LINE (num2% * 20 + num% - 1, num3% * 20)-STEP(0, num%), 0
+    LINE ((num2% * 20 + 20) - num% - 1, num3% * 20)-STEP(0, -num%), 0
+    NEXT num3%
+  NEXT num2%
+NEXT num%
+ELSEIF numwipe = 4 THEN
+  FOR num% = 0 TO 160
+    LINE (num%, 0)-STEP(0, 200 - ((num% * 100) / 160)), 8: LINE (320 - num%, 200)-STEP(0, -(200 - ((num% * 100) / 160))), 8
+    LINE (0, 200 - ((num% * 100) / 160))-STEP(320 - num%, 0), 8: LINE (320, ((num% * 100) / 160))-STEP(-(320 - num%), 0), 8
+    FOR b = 1 TO 100: NEXT b
+    LINE (num%, 0)-STEP(0, 200 - ((num% * 100) / 160)), 0: LINE (320 - num%, 200)-STEP(0, -(200 - ((num% * 100) / 160))), 0
+    LINE (0, 200 - ((num% * 100) / 160))-STEP(320 - num%, 0), 0: LINE (320, ((num% * 100) / 160))-STEP(-(320 - num%), 0), 0
+  NEXT num%
+END IF
+CLS
+END SUB
+
+DEFINT A-Z
+SUB WriTeReg (Reg%, Value%)
+OUT &H220, Reg%
+FOR x = 0 TO writereg.delay1
+   a = INP(&H220)
+NEXT x
+OUT &H223, Value%
+FOR x = 0 TO writereg.delay2
+   a = INP(&H220)
+NEXT x
+
+
+END SUB
+
+DEFSNG A-Z
+SUB zdrawfight
+        'spiral
+q = 0: FOR r = 1 TO 120 STEP .2: q = q + .04: IF q >= 6.24 THEN q = 0
+CIRCLE (158, 70), r, 4, q, q + .04, .15: NEXT r
+        'F
+LINE (60, 100)-STEP(-10, -50), 10: LINE -STEP(-10, -5), 10: LINE -STEP(50, -10), 10
+LINE -STEP(5, 25), 10: LINE -STEP(-10, -5), 10: LINE -STEP(-15, 2), 10
+LINE -STEP(1, 5), 10: LINE -STEP(15, 1), 10: LINE -STEP(1, 10), 10
+LINE -STEP(-14, 2), 10: LINE -STEP(10, 20), 10: LINE -STEP(-22, 5), 10
+        'I
+LINE (105, 90)-STEP(3, -7), 10: LINE -STEP(-2, -10), 10: LINE -STEP(-5, -3), 10
+LINE -STEP(20, -3), 10: LINE -STEP(-4, 5), 10: LINE -STEP(2, 15), 10
+LINE -STEP(3, 5), 10: LINE -STEP(-15, -1), 10
+q = 0: FOR r = 1 TO 12 STEP .03: q = q + .04: IF q >= 6.24 THEN q = 0
+CIRCLE (110, 55), r, 10, q, q + .04: NEXT r
+        'G
+CIRCLE (150, 70), 25, 10, 1, 5, 1: CIRCLE (150, 70), 20, 10, 1, 5.5, .8: LINE (161, 56)-STEP(-2, 10), 10
+LINE -STEP(7, -2), 10: LINE -STEP(8, -10), 10: LINE -STEP(-5, -10), 10
+LINE -STEP(-5, 5), 10: LINE (164, 81)-STEP(-18, -7), 10: LINE -STEP(-2, 3), 10
+LINE -STEP(-2, -7), 10: LINE -STEP(30, 5), 10: LINE -STEP(-2, 20), 10
+LINE -STEP(-12, -2), 10
+        'H
+LINE (180, 91)-STEP(-2, -60), 10: LINE -STEP(20, 3), 10: LINE -STEP(-5, 30), 10
+LINE -STEP(5, 3), 10: LINE -STEP(6, -32), 10: LINE -STEP(15, 3), 10
+LINE -STEP(-15, 60), 10: LINE -STEP(-10, -2), 10: LINE -STEP(3, -20), 10
+LINE -STEP(-7, 1), 10: LINE -STEP(-5, 15), 10: LINE -STEP(-5, 0), 10
+        'T
+LINE (215, 70)-STEP(15, 3), 10: LINE -STEP(7, -15), 10: LINE -STEP(1, 17), 10
+LINE -STEP(10, 5), 10: LINE -STEP(-10, 1), 10: LINE -STEP(-5, 20), 10
+LINE -STEP(-7, -2), 10: LINE -STEP(2, -20), 10: LINE -STEP(-14, -9), 10
+CIRCLE (231, 79), 22, 10, , , 1.15
+
+
+END SUB
+
